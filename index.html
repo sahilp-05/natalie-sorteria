@@ -14,7 +14,7 @@
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;position:fixed;inset:0;overscroll-behavior:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;background:#2a1810;overflow:hidden;font-family:Nunito,system-ui,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none;color:var(--ink)}
 *{touch-action:none}
-#stage{position:absolute;left:50%;top:50%;transform-origin:50% 50%;width:960px;height:600px;margin:-300px 0 0 -480px;overflow:hidden;background:#fdf1dc;border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+#stage{position:absolute;left:50%;top:50%;transform-origin:50% 50%;transform:translate(-50%,-50%);width:960px;height:600px;overflow:hidden;background:#fdf1dc;border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.5)}
 .screen,.station{position:absolute;inset:0;display:none}
 .screen.on,.station.on{display:block}
 .L{font-family:'Lilita One',Nunito,sans-serif;font-weight:400}
@@ -76,6 +76,8 @@ html,body{margin:0;height:100%;position:fixed;inset:0;overscroll-behavior:none;-
 .cust.walk{animation:bob .3s infinite alternate}
 @keyframes bob{to{margin-top:-6px}}
 .nat{position:absolute;pointer-events:none}
+#natO{left:478px;top:196px;width:165px;height:248px}
+#natS{left:736px;top:236px;width:214px;height:321px}
 
 /* order station */
 .counter{position:absolute;left:130px;top:398px;width:590px;height:160px;background:linear-gradient(#f6f6f6 0 16px,#b9c2cc 16px 22px,#d7262e 22px 70px,#a81b22 70px);border:4px solid var(--ink);border-radius:10px 10px 0 0;z-index:30}
@@ -186,6 +188,47 @@ html,body{margin:0;height:100%;position:fixed;inset:0;overscroll-behavior:none;-
 .card ul{text-align:left;font-weight:800;font-size:15px;line-height:1.5;padding-left:22px}
 .card .row{display:flex;justify-content:space-between;font-weight:900;font-size:16px;border-bottom:2px dashed #d9c3a0;padding:4px 0}
 .card .btns{margin-top:14px;display:flex;gap:12px;justify-content:center}
+.card,.card *{touch-action:pan-y}
+.card{-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+
+/* ---------- portrait layout (600x1000 stage) ---------- */
+#stage.pt #hud{height:64px;flex-wrap:wrap;align-content:center;row-gap:4px;column-gap:8px;padding:2px 8px;font-size:13px}
+#stage.pt #hRankName{display:none}
+#stage.pt .xp{width:60px}
+#stage.pt .tab{width:150px}
+#stage.pt .sign{left:195px;top:184px}
+#stage.pt .lane{left:476px;top:190px}
+#stage.pt .lanepole{left:500px;top:242px}
+#stage.pt #rail{left:10px;top:70px;width:580px}
+#stage.pt .counter{left:-4px;top:618px;width:608px;height:150px}
+#stage.pt .register{left:250px;top:542px}
+#stage.pt .cust .pbar{top:-2px}
+#stage.pt #natO{left:340px;top:436px}
+#stage.pt #takeBtn{left:40px;top:372px}
+#stage.pt #bubble{left:10px;top:180px;width:420px}
+#stage.pt #bubble::after{left:70px}
+#stage.pt #belt{left:20px;top:196px;width:560px}
+#stage.pt .chute{top:180px}
+#stage.pt .bend{left:570px;top:200px}
+#stage.pt .bendlbl{left:466px;top:202px}
+#stage.pt #hint{display:none}
+#stage.pt #natS{left:446px;top:330px;width:150px;height:225px}
+#stage.pt #ticket{left:10px;top:70px;width:580px;min-height:0;height:120px;overflow:hidden;columns:2;column-gap:14px;font-size:13px}
+#stage.pt #ticket h3{column-span:all;font-size:17px}
+#stage.pt #ticket .leg{display:none}
+#stage.pt #rotBtn{left:312px;top:346px}
+#stage.pt #serveBtn{left:306px;top:402px}
+#stage.pt #toast{left:90px;top:486px;width:420px}
+#stage.pt #startPanel{left:40px;top:360px;width:520px}
+#stage.pt #svBubble{left:20px;top:80px;width:300px}
+#stage.pt #svCust{left:20px;top:170px;width:200px;height:300px}
+#stage.pt #svCart{left:232px;top:150px;width:350px;height:300px}
+#stage.pt #svCard{left:20px;top:490px;width:560px;height:390px}
+#stage.pt #svCont{left:200px;top:900px}
+#stage.pt .card{width:540px;max-height:880px}
+#stage.pt #title .logo{left:0;top:40px;width:600px}
+#stage.pt #titleNat{left:190px;top:330px;width:220px;height:330px}
+#stage.pt #titleBtns{left:70px;top:690px}
 
 /* title */
 #title{background:repeating-conic-gradient(from 0deg at 50% 70%,#d7262e 0 9deg,#ea4a50 9deg 18deg)}
@@ -233,7 +276,7 @@ html,body{margin:0;height:100%;position:fixed;inset:0;overscroll-behavior:none;-
       <div class="sign">BIG Y</div><div class="lanepole"></div><div class="lane">3</div>
       <div id="rail"><span class="rl">ORDER TICKETS</span><div id="railT"></div></div>
       <div id="olayer"></div>
-      <div id="natO" class="nat" style="left:478px;top:196px;width:165px;height:248px"></div>
+      <div id="natO" class="nat"></div>
       <div class="counter"><div class="cbelt"></div></div>
       <div class="register"><div class="scr" id="regScr">$0.00</div><div class="bx"></div></div>
       <button id="takeBtn" class="btn green pulse">Take Order!</button>
@@ -245,11 +288,11 @@ html,body{margin:0;height:100%;position:fixed;inset:0;overscroll-behavior:none;-
       <div id="belt"><div class="rail" style="top:0"></div><div class="bs"></div><div class="rail" style="bottom:0"></div></div>
       <div class="chute"></div>
       <div class="bend"></div><div class="bendlbl">⚠ NO STOPPER!</div>
-      <div class="hold" style="left:14px;top:196px;width:142px;height:140px"><span>COUNTER</span></div>
-      <div class="hold" style="left:14px;top:346px;width:142px;height:140px"><span>COUNTER</span></div>
+      <div class="hold" id="hold0"><span>COUNTER</span></div>
+      <div class="hold" id="hold1"><span>COUNTER</span></div>
       <div id="hint">Drag groceries into the cart · tap an item to rotate it</div>
       <svg id="cartsvg" width="960" height="600"></svg>
-      <div id="natS" class="nat" style="left:736px;top:236px;width:214px;height:321px"></div>
+      <div id="natS" class="nat"></div>
       <div id="ticket"></div>
       <button id="rotBtn" class="btn small blue">⟳ Rotate</button>
       <button id="serveBtn" class="btn green">Serve ✔</button>
@@ -283,8 +326,14 @@ const pick=a=>a[Math.floor(Math.random()*a.length)];
 const rint=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-const CELL=44,BX=20,BY=44,BW=670,BH=136,ROWS_BOTTOM=500,SEATC=3,SEATR=2;
-const HOLDS=[{x:14,y:196,w:142,h:140},{x:14,y:346,w:142,h:140}];
+const CELL=44,BH=136,SEATC=3,SEATR=2;
+// Layout depends on orientation: landscape uses a 960x600 stage, portrait a 600x1000 one.
+let PT=false,SW=960,SH=600,BX,BY,BW,ROWS_BOTTOM,HOLDS;
+function setLayoutConsts(){
+  if(PT){SW=600;SH=1000;BX=20;BY=196;BW=560;ROWS_BOTTOM=880;HOLDS=[{x:8,y:338,w:142,h:136},{x:156,y:338,w:142,h:136}]}
+  else{SW=960;SH=600;BX=20;BY=44;BW=670;ROWS_BOTTOM=500;HOLDS=[{x:14,y:196,w:142,h:140},{x:14,y:346,w:142,h:140}]}
+}
+setLayoutConsts();
 
 /* ---------- data ---------- */
 const ITEMS={
@@ -422,28 +471,27 @@ function person(o,mood='smile'){
 
 /* ---------- stage scaling ---------- */
 const stage=$('#stage');
-// Fit the 960x600 stage to any screen. On a portrait phone the stage is turned sideways so it fills the screen
-// instead of shrinking to a strip; stagePt() undoes that rotation for pointer input.
-let ROT=false,K=1;
-function fit(){
-  const vv=window.visualViewport,W=vv?vv.width:innerWidth,H=vv?vv.height:innerHeight;
-  const kl=Math.min(W/960,H/600),kp=Math.min(H/960,W/600);
-  ROT=H>W&&kp>kl*1.15;K=ROT?kp:kl;
-  stage.style.transform=`rotate(${ROT?90:0}deg) scale(${K})`;
+let K=1,lastW=0,lastH=0;
+function fit(force){
+  const W=innerWidth,H=innerHeight;if(!force&&W===lastW&&H===lastH)return;lastW=W;lastH=H;
+  const pt=H>W*1.1;
+  if(pt!==PT){PT=pt;setLayoutConsts();stage.classList.toggle('pt',PT);stage.style.width=SW+'px';stage.style.height=SH+'px';relayout()}
+  K=Math.min(W/SW,H/SH);
+  stage.style.transform=`translate(-50%,-50%) scale(${K})`;
   stage.style.borderRadius=K<.8?'0':'14px';stage.classList.toggle('sm',K<.8);
 }
-addEventListener('resize',fit);addEventListener('orientationchange',()=>setTimeout(fit,250));
-if(window.visualViewport)visualViewport.addEventListener('resize',fit);
-fit();
-function stagePt(e){
-  const vv=window.visualViewport,W=vv?vv.width:innerWidth,H=vv?vv.height:innerHeight,ox=vv?vv.offsetLeft:0,oy=vv?vv.offsetTop:0;
-  const dx=e.clientX-ox-W/2,dy=e.clientY-oy-H/2;
-  return ROT?{x:480+dy/K,y:300-dx/K}:{x:480+dx/K,y:300+dy/K};
+addEventListener('resize',()=>fit());addEventListener('orientationchange',()=>{fit();setTimeout(()=>fit(),300);setTimeout(()=>fit(),800)});
+setInterval(()=>fit(),500); // iOS sometimes skips resize events when its toolbars show or hide
+function stagePt(e){const r=stage.getBoundingClientRect();return{x:(e.clientX-r.left)/K,y:(e.clientY-r.top)/K}}
+function relayout(){
+  $('#cartsvg').setAttribute('width',SW);$('#cartsvg').setAttribute('height',SH);
+  HOLDS.forEach((h,i)=>Object.assign($('#hold'+i).style,{left:h.x+'px',top:h.y+'px',width:h.w+'px',height:h.h+'px'}));
+  if(typeof G!=='undefined'&&G){layoutPeople();if(S&&S.running){placeCart();drawCart();Object.values(S.pcs).forEach(p=>{if(p.where!=='drop'&&p.where!=='drag')posPiece(p)})}}
 }
 const TOUCH=matchMedia('(pointer:coarse)').matches||'ontouchstart' in window;
 const fsEl=document.documentElement;
 if(fsEl.requestFullscreen||fsEl.webkitRequestFullscreen){const b=$('#fsBtn');b.style.display='block';
-  b.onclick=()=>{const d=document;if(d.fullscreenElement||d.webkitFullscreenElement)(d.exitFullscreen||d.webkitExitFullscreen).call(d);else{(fsEl.requestFullscreen||fsEl.webkitRequestFullscreen).call(fsEl);try{screen.orientation.lock('landscape').catch(()=>{})}catch(e){}}};
+  b.onclick=()=>{const d=document;if(d.fullscreenElement||d.webkitFullscreenElement)(d.exitFullscreen||d.webkitExitFullscreen).call(d);else{(fsEl.requestFullscreen||fsEl.webkitRequestFullscreen).call(fsEl);}};
   document.addEventListener('fullscreenchange',()=>setTimeout(fit,100))}
 addEventListener('pointerdown',()=>{try{if(AC&&AC.state==='suspended')AC.resume()}catch(e){}},true);
 stage.addEventListener('contextmenu',e=>e.preventDefault());
@@ -528,14 +576,19 @@ function arrive(){
   const def=pick(pool);G.used.push(def.name);
   const c={id:++G.cid,def,arrive:G.t,mood:'smile'};c.order=genOrder(G.day,rankOf(save.points),def);
   const D=diff(G.day),N=c.order.items.length;c.est=Math.round(20+N*((80+D.gap)/D.speed)+N*1.1+c.order.reqs.length*3);
-  const el=document.createElement('div');el.className='cust walk';el.style.left='-170px';el.style.top='236px';el.innerHTML=`<div class="pbar"><i></i><span></span></div><div class="fig">${person(def,'smile')}</div>`;c.patience=Math.round(c.est*Math.max(1.45,2-.06*(G.day-1)));
+  const el=document.createElement('div');el.className='cust walk';el.style.left='-170px';el.style.top=PT?'456px':'236px';el.innerHTML=`<div class="pbar"><i></i><span></span></div><div class="fig">${person(def,'smile')}</div>`;c.patience=Math.round(c.est*Math.max(1.45,2-.06*(G.day-1)));
   $('#olayer').appendChild(el);c.el=el;G.queue.push(c);G.arrived++;
   requestAnimationFrame(()=>requestAnimationFrame(layoutPeople));setTimeout(()=>{el.classList.remove('walk');if(G.queue[0]===c){SFX.ding();toast&&0}},1000);
   if(G.queue.length===1)setTimeout(SFX.ding,900);
 }
 function layoutPeople(){
-  G.queue.forEach((c,i)=>{c.el.style.left=(236-i*92)+'px';c.el.style.top='236px';c.el.style.transform=`scale(${i?.9:1})`;c.el.style.zIndex=20-i});
-  G.waiting.forEach((c,j)=>{c.el.style.left=Math.min(712+j*44,830)+'px';c.el.style.top='238px';c.el.style.transform='scale(.72)';c.el.style.zIndex=10+j});
+  if(PT){
+    G.queue.forEach((c,i)=>{c.el.style.left=(40-i*44)+'px';c.el.style.top=(456-i*24)+'px';c.el.style.transform=`scale(${1-i*.08})`;c.el.style.zIndex=20-i});
+    G.waiting.forEach((c,j)=>{c.el.style.left=Math.min(-6+j*100,460)+'px';c.el.style.top='716px';c.el.style.transform='scale(.74)';c.el.style.zIndex=40+j});
+  }else{
+    G.queue.forEach((c,i)=>{c.el.style.left=(236-i*92)+'px';c.el.style.top='236px';c.el.style.transform=`scale(${i?.9:1})`;c.el.style.zIndex=20-i});
+    G.waiting.forEach((c,j)=>{c.el.style.left=Math.min(712+j*44,830)+'px';c.el.style.top='238px';c.el.style.transform='scale(.72)';c.el.style.zIndex=10+j});
+  }
   $('#takeBtn').style.display=G.queue.length&&!G.taking?'block':'none';
 }
 function setMood(c,m){if(c.mood===m)return;c.mood=m;c.el.querySelector('.fig').innerHTML=person(c.def,m)}
@@ -586,6 +639,11 @@ function renderRail(){const h=[];if(S)h.push(`<div class="mini act"><b>${S.cust.
 
 /* ---------- sort station ---------- */
 let CART_X=170,CART_Y=236,SEAT_X=0,SEAT_Y=0;
+function placeCart(){
+  CART_Y=ROWS_BOTTOM-S.rows*CELL;
+  if(PT){CART_X=Math.round((SW-S.cols*CELL)/2);SEAT_X=14;SEAT_Y=CART_Y-118}
+  else{CART_X=S.cols===8?190:168;SEAT_X=CART_X+S.cols*CELL+18;SEAT_Y=CART_Y-22}
+}
 function enterSort(){
   const p=$('#startPanel');
   if(S){p.style.display='none';return}
@@ -609,7 +667,7 @@ function startSort(){
   S={cust:c,cols:c.order.cols,rows:c.order.rows,pcs:{},belt:[],hold:[null,null],toSpawn:[...c.order.items],dropped:[],squashed:[],nid:0,running:true,done:false,confirm:0,
      speed:D.speed,gap:D.gap,teeterMax:D.teeter,hints:D.hints};
   S.grid=new Array(S.cols*S.rows).fill(null);S.seat=new Array(SEATC*SEATR).fill(null);
-  CART_X=S.cols===8?190:168;CART_Y=ROWS_BOTTOM-S.rows*CELL;SEAT_X=CART_X+S.cols*CELL+18;SEAT_Y=CART_Y-22;
+  placeCart();
   drawCart();$('#startPanel').style.display='none';$('#ticket').style.display='block';$('#serveBtn').style.display='block';$('#rotBtn').style.display='block';
   $('#serveBtn').textContent='Serve ✔';$('#serveBtn').classList.remove('pulse');
   $('#belt').classList.add('run');$('#belt .bs').style.animationDuration=(44/S.speed)+'s';
@@ -617,8 +675,9 @@ function startSort(){
 }
 function drawCart(){
   const W=S.cols*CELL,H=S.rows*CELL,I='#3a2414',sx2=SEAT_X+SEATC*CELL;let s='';
-  s+=`<path d="M${CART_X+14} ${CART_Y+H+6} L${CART_X+34} ${CART_Y+H+30} L${sx2-6} ${CART_Y+H+30} L${sx2+6} ${SEAT_Y+SEATR*CELL+4}" fill="none" stroke="#5b6773" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>`;
-  for(const x of [CART_X+44,CART_X+W-24,sx2-20])s+=`<circle cx="${x}" cy="${CART_Y+H+42}" r="13" fill="#333" stroke="${I}" stroke-width="3"/><circle cx="${x}" cy="${CART_Y+H+42}" r="4" fill="#bbb"/>`;
+  if(PT)s+=`<path d="M${CART_X+14} ${CART_Y+H+6} L${CART_X+34} ${CART_Y+H+30} L${CART_X+W-10} ${CART_Y+H+30}" fill="none" stroke="#5b6773" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/><path d="M${sx2} ${SEAT_Y+SEATR*CELL} L${CART_X} ${CART_Y}" stroke="#5b6773" stroke-width="7" stroke-linecap="round"/>`;
+  else s+=`<path d="M${CART_X+14} ${CART_Y+H+6} L${CART_X+34} ${CART_Y+H+30} L${sx2-6} ${CART_Y+H+30} L${sx2+6} ${SEAT_Y+SEATR*CELL+4}" fill="none" stroke="#5b6773" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>`;
+  for(const x of PT?[CART_X+44,CART_X+W-24]:[CART_X+44,CART_X+W-24,sx2-20])s+=`<circle cx="${x}" cy="${CART_Y+H+42}" r="13" fill="#333" stroke="${I}" stroke-width="3"/><circle cx="${x}" cy="${CART_Y+H+42}" r="4" fill="#bbb"/>`;
   s+=`<rect x="${CART_X-7}" y="${CART_Y-7}" width="${W+14}" height="${H+14}" rx="10" fill="#eef2f6" stroke="#5b6773" stroke-width="7"/>`;
   for(let c=1;c<S.cols;c++)s+=`<line x1="${CART_X+c*CELL}" y1="${CART_Y}" x2="${CART_X+c*CELL}" y2="${CART_Y+H}" stroke="#c9d2dc" stroke-width="2"/>`;
   for(let r=1;r<S.rows;r++)s+=`<line x1="${CART_X}" y1="${CART_Y+r*CELL}" x2="${CART_X+W}" y2="${CART_Y+r*CELL}" stroke="#c9d2dc" stroke-width="2"/>`;
@@ -626,7 +685,7 @@ function drawCart(){
   for(let c=1;c<SEATC;c++)s+=`<line x1="${SEAT_X+c*CELL}" y1="${SEAT_Y}" x2="${SEAT_X+c*CELL}" y2="${SEAT_Y+SEATR*CELL}" stroke="#f3c0c0" stroke-width="2"/>`;
   s+=`<line x1="${SEAT_X}" y1="${SEAT_Y+CELL}" x2="${sx2}" y2="${SEAT_Y+CELL}" stroke="#f3c0c0" stroke-width="2"/>`;
   s+=`<text x="${SEAT_X+SEATC*CELL/2}" y="${SEAT_Y-12}" text-anchor="middle" font-family="Lilita One" font-size="15" fill="#c62828">KID SEAT</text>`;
-  s+=`<path d="M${sx2+3} ${SEAT_Y} L${sx2+24} ${SEAT_Y-30}" stroke="#5b6773" stroke-width="7" stroke-linecap="round"/><path d="M${sx2+10} ${SEAT_Y-34} L${sx2+40} ${SEAT_Y-34}" stroke="${I}" stroke-width="16" stroke-linecap="round"/><path d="M${sx2+10} ${SEAT_Y-34} L${sx2+40} ${SEAT_Y-34}" stroke="#d7262e" stroke-width="10" stroke-linecap="round"/>`;
+  if(!PT)s+=`<path d="M${sx2+3} ${SEAT_Y} L${sx2+24} ${SEAT_Y-30}" stroke="#5b6773" stroke-width="7" stroke-linecap="round"/><path d="M${sx2+10} ${SEAT_Y-34} L${sx2+40} ${SEAT_Y-34}" stroke="${I}" stroke-width="16" stroke-linecap="round"/><path d="M${sx2+10} ${SEAT_Y-34} L${sx2+40} ${SEAT_Y-34}" stroke="#d7262e" stroke-width="10" stroke-linecap="round"/>`;
   $('#cartsvg').innerHTML=s;
 }
 function makePiece(k){
@@ -696,11 +755,13 @@ function computeTarget(p,left,top){
   const cx=left+p.w*CELL/2,cy=top+p.h*CELL/2;
   for(let i=0;i<2;i++){const h=HOLDS[i];if(!S.hold[i]&&cx>h.x&&cx<h.x+h.w&&cy>h.y&&cy<h.y+h.h)return{kind:'hold',i}}
   const mainR=CART_X+S.cols*CELL;
-  if(cx>=mainR+9&&cx<=SEAT_X+SEATC*CELL+40&&cy>=SEAT_Y-120&&cy<=SEAT_Y+SEATR*CELL+50){
+  const inSeat=PT?(cx>=SEAT_X-14&&cx<=SEAT_X+SEATC*CELL+30&&cy>=SEAT_Y-90&&cy<=SEAT_Y+SEATR*CELL+14)
+                 :(cx>=mainR+9&&cx<=SEAT_X+SEATC*CELL+40&&cy>=SEAT_Y-120&&cy<=SEAT_Y+SEATR*CELL+50);
+  if(inSeat){
     if(p.w>SEATC)return{kind:'seat',c:0,r:-1,ok:false,why:'Too big for the kid seat!'};
     const c=clamp(Math.round((left-SEAT_X)/CELL),0,SEATC-p.w),r=landRow(S.seat,SEATC,SEATR,c,p.w,p.h);
     return{kind:'seat',c,r,ok:r>=0&&!p.heavy,why:p.heavy?'Too heavy for the kid seat!':'No room there!'}}
-  if(cx>=CART_X-40&&cx<mainR+9&&cy>=CART_Y-140&&cy<=CART_Y+S.rows*CELL+50){
+  if(cx>=CART_X-40&&cx<(PT?mainR+40:mainR+9)&&cy>=CART_Y-140&&cy<=CART_Y+S.rows*CELL+50){
     const c=clamp(Math.round((left-CART_X)/CELL),0,S.cols-p.w),r=landRow(S.grid,S.cols,S.rows,c,p.w,p.h);
     const squish=r>=0&&p.heavy&&anyBelow(S.grid,S.cols,S.rows,c,r+p.h,p.w,id=>S.pcs[id].fragile);
     return{kind:'cart',c,r,ok:r>=0,squish,why:"It won't fit there!"}}
@@ -834,6 +895,7 @@ function showTitle(){G=null;S=null;showScreen('title');$('#titleNat').innerHTML=
   if(cont)add('New Game','',()=>modal('<h2>Start over from Day 1?</h2><p style="font-weight:800">Your rank, points and tips will be reset.</p>',[['Cancel','blue'],['Reset','',()=>{save={day:1,points:0,tips:0,tut:false,mute:save.mute};writeSave();showTitle()}]]));
   add('How to Play','blue',()=>howTo());
 }
+fit(true);relayout();
 showTitle();
 </script>
 </body>
