@@ -1,0 +1,812 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Natalie Shopping Cart Sorteria</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#3a2414;--red:#d7262e;--cream:#fff6e6;--gold:#ffc93c}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#2a1810;overflow:hidden;font-family:Nunito,system-ui,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none;color:var(--ink)}
+#stage{position:absolute;left:50%;top:50%;width:960px;height:600px;margin:-300px 0 0 -480px;overflow:hidden;background:#fdf1dc;border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+.screen,.station{position:absolute;inset:0;display:none}
+.screen.on,.station.on{display:block}
+.L{font-family:'Lilita One',Nunito,sans-serif;font-weight:400}
+
+/* buttons */
+.btn{font-family:'Lilita One',Nunito,sans-serif;font-size:22px;color:#fff;background:linear-gradient(#ff5a5f,#d7262e);border:4px solid var(--ink);border-radius:16px;padding:8px 20px;box-shadow:0 5px 0 var(--ink);cursor:pointer;text-shadow:0 2px 0 rgba(0,0,0,.35);letter-spacing:.5px}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--ink)}
+.btn.green{background:linear-gradient(#86e060,#3fa52b)}
+.btn.blue{background:linear-gradient(#5fb6ff,#1e78d2)}
+.btn.gold{background:linear-gradient(#ffe066,#f2a900);color:var(--ink);text-shadow:0 2px 0 rgba(255,255,255,.5)}
+.btn.small{font-size:17px;padding:5px 12px;border-radius:12px}
+.btn.pulse{animation:pulse 1s infinite}
+@keyframes pulse{50%{transform:scale(1.08)}}
+
+/* store backdrop */
+.store{position:absolute;inset:0;background:linear-gradient(#fbe6c2 0 61%,#8a6d45 61% 62%,transparent 62%),repeating-conic-gradient(#e6d6bb 0 25%,#f8f0e2 0 50%) 0 0/48px 48px}
+.store.dim::after{content:"";position:absolute;inset:0;background:rgba(255,246,230,.35)}
+.shelves{position:absolute;inset:0;opacity:.85}
+.shelf{position:absolute;top:92px;width:224px;height:250px;background:#d8c09a;border:4px solid var(--ink);border-radius:8px;display:flex;flex-direction:column;justify-content:space-around;padding:4px 6px}
+.srow{display:flex;align-items:flex-end;gap:3px;border-bottom:7px solid #8a6d45;height:72px;padding:0 3px;overflow:hidden}
+.srow b{display:block;border:2px solid rgba(58,36,20,.7);border-radius:3px;flex:none}
+.sign{position:absolute;left:376px;top:30px;width:210px;height:56px;background:var(--red);border:4px solid var(--ink);border-radius:14px;color:#fff;font:400 38px/48px 'Lilita One';text-align:center;box-shadow:0 5px 0 var(--ink);text-shadow:0 3px 0 #8e1016}
+.lane{position:absolute;left:640px;top:40px;width:54px;height:54px;border-radius:50%;background:#ffe066;border:4px solid var(--ink);font:400 30px/46px 'Lilita One';text-align:center;box-shadow:0 0 18px #ffe066}
+.lanepole{position:absolute;left:664px;top:92px;width:8px;height:80px;background:#777;border:2px solid var(--ink)}
+
+/* HUD */
+#hud{position:absolute;left:0;right:0;top:0;height:38px;background:var(--ink);color:#fff;display:flex;align-items:center;gap:14px;padding:0 12px;z-index:60;font-weight:900;font-size:15px}
+#hud .pill{background:#5a3a22;border-radius:12px;padding:3px 10px;display:flex;align-items:center;gap:6px}
+#hDay{font-family:'Lilita One';font-size:19px;color:var(--gold)}
+#hRank{display:inline-block;width:24px;height:24px;border-radius:50%;background:var(--gold);color:var(--ink);text-align:center;font:400 16px/24px 'Lilita One'}
+.xp{width:90px;height:10px;background:#2a1810;border-radius:6px;overflow:hidden;border:1px solid #8a6d45}
+#hXp{height:100%;background:linear-gradient(90deg,#86e060,#3fa52b);width:0}
+#hRankName{font-size:12px;color:#f3d9b8}
+#hud .sp{flex:1}
+#muteBtn{background:none;border:0;font-size:18px;cursor:pointer;color:#fff}
+
+/* station bar */
+#bar{position:absolute;left:0;right:0;bottom:0;height:46px;background:var(--ink);display:flex;gap:10px;align-items:flex-end;justify-content:center;z-index:60;padding:0 10px}
+.tab{position:relative;width:170px;height:40px;border:4px solid #1c0f08;border-bottom:0;border-radius:14px 14px 0 0;background:#8a6d45;color:#fff;font:400 20px 'Lilita One';cursor:pointer;text-shadow:0 2px 0 rgba(0,0,0,.4)}
+.tab.on{background:var(--gold);color:var(--ink);text-shadow:none;height:44px}
+.tab .dot{position:absolute;top:-10px;right:-8px;width:24px;height:24px;border-radius:50%;background:#ff2d2d;border:3px solid #fff;color:#fff;font:400 15px/18px 'Lilita One';display:none;animation:pulse .8s infinite}
+.tab.alert .dot{display:block}
+
+/* people */
+.ppl{width:100%;height:100%;overflow:visible}
+.cust .fig{position:absolute;inset:0}
+.pbar{position:absolute;left:30px;top:-6px;width:90px;height:22px;background:#fff;border:3px solid var(--ink);border-radius:11px;overflow:hidden;z-index:2;box-shadow:0 3px 0 rgba(0,0,0,.25)}
+.pbar i{position:absolute;left:0;top:0;bottom:0;background:#4caf50;transition:width .25s linear,background .25s}
+.pbar span{position:absolute;inset:0;text-align:center;font:400 14px/16px 'Lilita One';color:var(--ink);text-shadow:0 0 3px #fff}
+.pbar.low{animation:pulse .5s infinite}
+.cust.active .pbar{display:none}
+.cust.leave{left:-220px!important;opacity:0;transition:left 1.4s ease-in,opacity 1.4s}
+.huff{position:absolute;left:40px;top:-44px;background:#fff;border:3px solid var(--ink);border-radius:12px;padding:2px 8px;font:400 16px 'Lilita One';color:#c62828;white-space:nowrap;animation:pop .2s}
+#hLine{display:flex;gap:3px}
+#hLine b{display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;border:2px solid #fff;font-size:14px;position:relative}
+#hLine b.low{animation:pulse .5s infinite}
+#hStrikes{letter-spacing:1px}
+.cust{position:absolute;width:150px;height:225px;transform-origin:50% 100%;transition:left 1s ease-in-out,top 1s,transform 1s,opacity .5s}
+.cust.walk{animation:bob .3s infinite alternate}
+@keyframes bob{to{margin-top:-6px}}
+.nat{position:absolute;pointer-events:none}
+
+/* order station */
+.counter{position:absolute;left:130px;top:398px;width:590px;height:160px;background:linear-gradient(#f6f6f6 0 16px,#b9c2cc 16px 22px,#d7262e 22px 70px,#a81b22 70px);border:4px solid var(--ink);border-radius:10px 10px 0 0;z-index:30}
+.cbelt{position:absolute;left:8px;top:2px;width:230px;height:12px;background:repeating-linear-gradient(90deg,#333 0 10px,#555 10px 20px);border-radius:6px;border:2px solid var(--ink)}
+.register{position:absolute;left:395px;top:322px;width:78px;height:80px;z-index:31}
+.register .scr{position:absolute;left:10px;top:0;width:58px;height:34px;background:#2b3a42;border:4px solid var(--ink);border-radius:6px;color:#7dff8a;font:900 14px/26px monospace;text-align:center}
+.register .bx{position:absolute;left:0;top:36px;width:78px;height:44px;background:#9aa6b2;border:4px solid var(--ink);border-radius:8px}
+#takeBtn{position:absolute;left:236px;top:150px;z-index:35;display:none}
+#bubble{position:absolute;left:18px;top:46px;width:330px;min-height:70px;background:#fff;border:4px solid var(--ink);border-radius:20px;padding:10px 12px;z-index:40;display:none;box-shadow:0 5px 0 rgba(0,0,0,.2)}
+#bubble::after{content:"";position:absolute;left:250px;bottom:-22px;border:12px solid transparent;border-top:14px solid var(--ink)}
+#bubble .nm{font:400 18px 'Lilita One';color:var(--red)}
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.chip{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:34px;border:3px solid var(--ink);border-radius:9px;font-size:20px;animation:pop .2s}
+.reqline{font-weight:900;font-size:14px;margin-top:5px;animation:pop .2s}
+#rail{position:absolute;left:738px;top:46px;width:214px;height:110px;z-index:20}
+#rail .rl{font:400 13px 'Lilita One';color:#fff;background:var(--ink);display:inline-block;padding:1px 8px;border-radius:6px 6px 0 0}
+#railT{display:flex;gap:4px;background:#8a6d45;border:3px solid var(--ink);padding:5px;border-radius:0 8px 8px 8px;min-height:74px;overflow:hidden}
+.mini{flex:none;width:62px;height:62px;background:#fff;border:2px solid var(--ink);border-top:6px solid var(--red);border-radius:4px;font-size:10px;font-weight:900;text-align:center;padding:2px;line-height:1.2;animation:pop .3s}
+.mini b{display:block;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini.act{border-top-color:#3fa52b;background:#eaffdf}
+
+/* sort station */
+#belt{position:absolute;left:20px;top:44px;width:670px;height:136px;background:#2b2b2b;border:5px solid var(--ink);border-radius:12px;overflow:hidden}
+#belt .bs{position:absolute;inset:6px 0;background:repeating-linear-gradient(90deg,#3c3c3c 0 22px,#2f2f2f 22px 44px);animation:beltmv 1s linear infinite;animation-play-state:paused}
+#belt.run .bs{animation-play-state:running}
+@keyframes beltmv{to{background-position:44px 0}}
+#belt .rail{position:absolute;left:0;right:0;height:7px;background:#b9c2cc}
+.chute{position:absolute;left:4px;top:28px;width:34px;height:120px;background:#9aa6b2;border:4px solid var(--ink);border-radius:8px;z-index:3}
+.bend{position:absolute;left:680px;top:48px;width:30px;height:128px;background:repeating-linear-gradient(45deg,#ffd000 0 10px,#222 10px 20px);border:4px solid var(--ink);border-radius:6px;opacity:.9}
+.bendlbl{position:absolute;left:574px;top:50px;z-index:4;font:900 11px Nunito;color:#a81b22;background:#fff3c4;padding:1px 6px;border:2px solid var(--ink);border-radius:6px}
+.hold{position:absolute;border:4px dashed #8a6d45;border-radius:14px;background:rgba(255,255,255,.45)}
+.hold span{position:absolute;left:0;right:0;bottom:4px;text-align:center;font:400 13px 'Lilita One';color:#8a6d45}
+#cartsvg{position:absolute;left:0;top:0;pointer-events:none}
+#ticket{position:absolute;left:722px;top:44px;width:228px;min-height:150px;background:#fff;border:4px solid var(--ink);border-top:12px solid var(--red);border-radius:6px;padding:6px 8px;z-index:12;font-size:12px;box-shadow:0 4px 0 rgba(0,0,0,.2);display:none}
+#ticket h3{margin:0;font:400 18px 'Lilita One'}
+#ticket .tk-items{display:flex;flex-wrap:wrap;gap:3px;margin:4px 0}
+#ticket .ti{border:2px solid var(--ink);border-radius:6px;padding:0 4px;font-weight:900;font-size:12px;background:#f7f0e3}
+#ticket .ti.done{background:#c9f2b4}
+#ticket .ti.bad{background:#ffb4b4}
+#ticket ul{list-style:none;margin:4px 0 0;padding:0}
+#ticket li{font-weight:900;padding:2px 0 2px 20px;position:relative;line-height:1.2}
+#ticket li::before{content:"☐";position:absolute;left:2px;top:1px}
+#ticket li.ok{color:#2e7d32}
+#ticket li.ok::before{content:"✅";font-size:11px}
+#ticket .leg{margin-top:5px;border-top:2px dashed #ccc;padding-top:4px;font-size:10.5px;font-weight:800;color:#6b5040}
+#ticket .warn{color:#c62828;font-weight:900}
+#rotBtn{position:absolute;left:606px;top:402px;z-index:13}
+#serveBtn{position:absolute;left:600px;top:452px;z-index:13;font-size:24px}
+#ghost{position:absolute;border:3px dashed #2e7d32;background:rgba(76,175,80,.28);border-radius:9px;pointer-events:none;display:none;z-index:14}
+#ghost.bad{border-color:#c62828;background:rgba(244,67,54,.25)}
+#ghost.warn{border-color:#ef6c00;background:rgba(255,152,0,.35)}
+#pcs{position:absolute;inset:0;pointer-events:none;z-index:15}
+#pcs .pc{pointer-events:auto}
+#toast{position:absolute;left:180px;top:192px;width:420px;text-align:center;z-index:30;pointer-events:none}
+#toast div{display:inline-block;background:var(--ink);color:#fff;font:900 15px Nunito;padding:6px 14px;border-radius:12px;animation:toast 2s forwards}
+@keyframes toast{0%{opacity:0;transform:translateY(10px)}10%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0}}
+#startPanel{position:absolute;left:170px;top:220px;width:400px;background:var(--cream);border:5px solid var(--ink);border-radius:20px;padding:18px;text-align:center;z-index:25;box-shadow:0 6px 0 var(--ink);display:none}
+#startPanel h2{margin:0 0 6px;font:400 28px 'Lilita One';color:var(--red)}
+#hint{position:absolute;left:170px;top:186px;font:800 12px Nunito;color:#6b5040}
+
+/* pieces */
+.pc{position:absolute;border:3px solid var(--ink);border-radius:9px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:grab;box-shadow:inset 0 -5px 0 rgba(0,0,0,.13),inset 0 3px 0 rgba(255,255,255,.55);touch-action:none}
+.pc .em{font-size:28px;line-height:1;pointer-events:none;filter:drop-shadow(0 1px 0 rgba(0,0,0,.25))}
+.pc.s1 .em{font-size:23px}
+.pc .lbl{font:900 9.5px Nunito;text-transform:uppercase;margin-top:2px;pointer-events:none;white-space:nowrap}
+.pc.s1 .lbl{display:none}
+.pc .bdg{position:absolute;top:-8px;right:-6px;display:flex;gap:1px;pointer-events:none}
+.pc .bdg i{font-style:normal;width:17px;height:17px;border-radius:50%;border:2px solid var(--ink);font:900 10px/13px Nunito;text-align:center;color:#fff}
+.hv{background:#7b1f1f}.fr{background:#ff9800}.cd{background:#2f8be6}
+.pc.drag{z-index:50;cursor:grabbing;transform:scale(1.07);box-shadow:0 14px 18px rgba(0,0,0,.35)}
+.pc.anim{transition:top .14s cubic-bezier(.5,0,1,1),left .1s}
+.pc.teeter{animation:teeter .2s infinite alternate}
+@keyframes teeter{from{transform:rotate(-5deg)}to{transform:rotate(9deg) translateX(5px)}}
+.pc.fall{transition:transform .7s cubic-bezier(.5,0,1,1),opacity .7s;transform:translate(60px,420px) rotate(130deg);opacity:0;pointer-events:none}
+.pc.splat{background:#8d7b6a!important;filter:saturate(.4);cursor:not-allowed}
+.pc.splat .em{transform:scale(1.15)}
+.pc.squish{animation:squish .45s infinite alternate}
+@keyframes squish{to{box-shadow:0 0 0 5px #ff2d2d,inset 0 -5px 0 rgba(0,0,0,.13)}}
+.pc.pop{animation:pop .25s}
+@keyframes pop{from{transform:scale(.3);opacity:0}}
+.pc.shake{animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+/* serve station */
+#svCust{position:absolute;left:30px;top:150px;width:230px;height:345px}
+#svBubble{position:absolute;left:20px;top:56px;width:270px;background:#fff;border:4px solid var(--ink);border-radius:18px;padding:10px 12px;font:900 16px Nunito;z-index:3}
+#svBubble::after{content:"";position:absolute;left:120px;bottom:-22px;border:12px solid transparent;border-top:14px solid var(--ink)}
+#svCart{position:absolute;left:290px;top:130px;width:330px;height:300px}
+#svCard{position:absolute;left:630px;top:52px;width:310px;height:450px;background:#fff;border:5px solid var(--ink);border-top:16px solid var(--red);border-radius:10px;padding:10px 16px;box-shadow:0 6px 0 rgba(0,0,0,.25)}
+#svCard h2{margin:0;font:400 24px 'Lilita One';text-align:center}
+.sbar{margin:10px 0}
+.sbar .t{display:flex;justify-content:space-between;font-weight:900;font-size:15px}
+.sbar .tr{height:18px;border:3px solid var(--ink);border-radius:10px;background:#eee;overflow:hidden}
+.sbar .f{height:100%;width:0;transition:width .7s ease-out}
+.total{text-align:center;margin-top:8px}
+.total .pct{font:400 46px 'Lilita One';line-height:1}
+.total .gr{font:400 24px 'Lilita One';color:var(--red)}
+.total .tip{font-weight:900;font-size:16px;margin-top:4px}
+#svCont{position:absolute;left:340px;top:470px}
+
+/* modal */
+#modal{position:absolute;inset:0;background:rgba(42,24,16,.6);display:none;align-items:center;justify-content:center;z-index:100}
+#modal.on{display:flex}
+.card{width:560px;max-height:540px;overflow:auto;background:var(--cream);border:6px solid var(--ink);border-radius:24px;padding:20px 26px;text-align:center;box-shadow:0 8px 0 var(--ink);animation:pop .3s}
+.card h1{margin:0;font:400 44px 'Lilita One';color:var(--red);-webkit-text-stroke:2px var(--ink);text-shadow:0 4px 0 var(--ink)}
+.card h2{margin:4px 0 10px;font:400 24px 'Lilita One'}
+.card ul{text-align:left;font-weight:800;font-size:15px;line-height:1.5;padding-left:22px}
+.card .row{display:flex;justify-content:space-between;font-weight:900;font-size:16px;border-bottom:2px dashed #d9c3a0;padding:4px 0}
+.card .btns{margin-top:14px;display:flex;gap:12px;justify-content:center}
+
+/* title */
+#title{background:repeating-conic-gradient(from 0deg at 50% 70%,#d7262e 0 9deg,#ea4a50 9deg 18deg)}
+#title .logo{position:absolute;left:330px;top:50px;width:600px;text-align:center;transform:rotate(-3deg)}
+#title .l1{font:400 52px 'Lilita One';color:#fff;-webkit-text-stroke:3px var(--ink);text-shadow:0 5px 0 var(--ink)}
+#title .l2{font:400 46px 'Lilita One';color:var(--gold);-webkit-text-stroke:3px var(--ink);text-shadow:0 5px 0 var(--ink);margin-top:-6px}
+#title .l3{font:400 92px 'Lilita One';color:#fff;-webkit-text-stroke:4px var(--ink);text-shadow:0 7px 0 var(--ink);margin-top:-14px;letter-spacing:2px}
+#title .l3 span{color:#7fe05a}
+#title .tag{display:inline-block;background:var(--ink);color:#fff;font-weight:900;padding:4px 14px;border-radius:12px;margin-top:4px}
+#titleNat{position:absolute;left:30px;top:120px;width:300px;height:450px}
+#titleBtns{position:absolute;left:400px;top:380px;width:460px;display:flex;flex-direction:column;gap:12px;align-items:center}
+#titleBtns .btn{width:280px;font-size:28px}
+#titleCart{position:absolute;left:250px;top:418px;font-size:60px;filter:drop-shadow(0 4px 0 var(--ink))}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="title" class="screen on">
+    <div id="titleNat"></div>
+    <div class="logo">
+      <div class="l1">Natalie</div>
+      <div class="l2">Shopping Cart</div>
+      <div class="l3">SORT<span>ERIA</span></div>
+      <div class="tag">🛒 Big Y Checkout Lane 3</div>
+    </div>
+    <div id="titleBtns"></div>
+  </div>
+
+  <div id="game" class="screen">
+    <div id="hud">
+      <span id="hDay">Day 1</span>
+      <span class="pill">👥 <span id="hServed">0/0</span></span>
+      <span class="pill" title="Customers who walk out — 3 and the day is over">Walkouts <span id="hStrikes"></span></span>
+      <span id="hLine" title="Patience of customers in line"></span>
+      <span class="pill">⏱ <span id="hClock">9:00 AM</span></span>
+      <span class="sp"></span>
+      <span class="pill"><span id="hRank">1</span><span><span id="hRankName"></span><div class="xp"><div id="hXp"></div></div></span></span>
+      <span class="pill">💵 <span id="hTips">$0.00</span></span>
+      <button id="muteBtn" title="Sound">🔊</button>
+    </div>
+
+    <div id="order" class="station">
+      <div class="store"></div><div class="shelves" id="shelvesO"></div>
+      <div class="sign">BIG Y</div><div class="lanepole"></div><div class="lane">3</div>
+      <div id="rail"><span class="rl">ORDER TICKETS</span><div id="railT"></div></div>
+      <div id="olayer"></div>
+      <div id="natO" class="nat" style="left:478px;top:196px;width:165px;height:248px"></div>
+      <div class="counter"><div class="cbelt"></div></div>
+      <div class="register"><div class="scr" id="regScr">$0.00</div><div class="bx"></div></div>
+      <button id="takeBtn" class="btn green pulse">Take Order!</button>
+      <div id="bubble"></div>
+    </div>
+
+    <div id="sort" class="station">
+      <div class="store dim"></div><div class="shelves" id="shelvesS" style="opacity:.35"></div>
+      <div id="belt"><div class="rail" style="top:0"></div><div class="bs"></div><div class="rail" style="bottom:0"></div></div>
+      <div class="chute"></div>
+      <div class="bend"></div><div class="bendlbl">⚠ NO STOPPER!</div>
+      <div class="hold" style="left:14px;top:196px;width:142px;height:140px"><span>COUNTER</span></div>
+      <div class="hold" style="left:14px;top:346px;width:142px;height:140px"><span>COUNTER</span></div>
+      <div id="hint">Drag groceries into the cart · tap an item or press R to rotate</div>
+      <svg id="cartsvg" width="960" height="600"></svg>
+      <div id="natS" class="nat" style="left:736px;top:236px;width:214px;height:321px"></div>
+      <div id="ticket"></div>
+      <button id="rotBtn" class="btn small blue">⟳ Rotate</button>
+      <button id="serveBtn" class="btn green">Serve ✔</button>
+      <div id="ghost"></div>
+      <div id="pcs"></div>
+      <div id="startPanel"></div>
+      <div id="toast"></div>
+    </div>
+
+    <div id="serve" class="station">
+      <div class="store"></div><div class="shelves" id="shelvesV" style="opacity:.5"></div>
+      <div id="svBubble"></div>
+      <div id="svCust"></div>
+      <div id="svCart"></div>
+      <div id="svCard"></div>
+      <button id="svCont" class="btn green pulse">Continue ➜</button>
+    </div>
+
+    <div id="bar">
+      <button class="tab" data-s="order">🧾 Order<span class="dot">!</span></button>
+      <button class="tab" data-s="sort">🛒 Sort<span class="dot">!</span></button>
+    </div>
+  </div>
+
+  <div id="modal"></div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const rint=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const CELL=44,BX=20,BY=44,BW=670,BH=136,ROWS_BOTTOM=500,SEATC=3,SEATR=2;
+const HOLDS=[{x:14,y:196,w:142,h:140},{x:14,y:346,w:142,h:140}];
+
+/* ---------- data ---------- */
+const ITEMS={
+  milk:{n:'Milk',e:'🥛',w:1,h:2,heavy:1,cold:1,c:'#e3f0ff'},
+  eggs:{n:'Eggs',e:'🥚',w:2,h:1,fragile:1,cold:1,c:'#fff1cf'},
+  bread:{n:'Bread',e:'🍞',w:2,h:1,fragile:1,c:'#f3c47c'},
+  cereal:{n:'Cereal',e:'🥣',w:1,h:2,c:'#ffd23f'},
+  apples:{n:'Apples',e:'🍎',w:1,h:1,c:'#ff9e8f'},
+  soup:{n:'Soup',e:'🥫',w:1,h:1,heavy:1,c:'#ff8a65'},
+  cheese:{n:'Cheese',e:'🧀',w:1,h:1,cold:1,c:'#ffe58a'},
+  juice:{n:'Juice',e:'🧃',w:1,h:2,cold:1,c:'#cde8a8'},
+  bananas:{n:'Bananas',e:'🍌',w:2,h:1,fragile:1,c:'#fff59d'},
+  carrots:{n:'Carrots',e:'🥕',w:1,h:1,c:'#ffc078'},
+  melon:{n:'Melon',e:'🍉',w:2,h:2,heavy:1,c:'#a8dba8',r:2},
+  soda:{n:'Soda 12pk',e:'🥤',w:3,h:1,heavy:1,c:'#f58b8b',r:2},
+  chips:{n:'Chips',e:'🥔',w:2,h:1,fragile:1,c:'#ffe0a8',r:2},
+  pizza:{n:'Frozen Pizza',e:'🍕',w:3,h:1,cold:1,c:'#ffd0bd',r:3},
+  icecream:{n:'Ice Cream',e:'🍦',w:1,h:1,cold:1,c:'#f7d6ec',r:3},
+  pumpkin:{n:'Pumpkin',e:'🎃',w:2,h:2,heavy:1,c:'#ffb04d',r:3},
+  chicken:{n:'Chicken',e:'🍗',w:2,h:1,heavy:1,cold:1,c:'#ffcf8a',r:4},
+  detergent:{n:'Detergent',e:'🧴',w:1,h:2,heavy:1,c:'#9fcbf5',r:4},
+  towels:{n:'Towels',e:'🧻',w:2,h:2,c:'#f4f4f4',r:4},
+  cake:{n:'Cake',e:'🎂',w:2,h:2,fragile:1,c:'#f9c2d8',r:5},
+  flowers:{n:'Flowers',e:'💐',w:1,h:2,fragile:1,c:'#f7a8c8',r:5},
+  turkey:{n:'Turkey',e:'🦃',w:2,h:2,heavy:1,cold:1,c:'#dcb07a',r:6},
+  water:{n:'Water',e:'💧',w:2,h:2,heavy:1,c:'#bfe7fb',r:6},
+  baguette:{n:'Baguette',e:'🥖',w:3,h:1,fragile:1,c:'#e6bd78',r:7},
+  grapes:{n:'Grapes',e:'🍇',w:1,h:1,fragile:1,c:'#d1b3ee',r:7},
+};
+const NAT={skin:'#f2cdaa',hair:'#3b2216',eye:'#5a3216',style:'natalie',shirt:'#b51f3a',arms:'#f2cdaa',pants:'#a9c3dc',shoes:'#f5f5f5',lash:1,tag:'NATALIE',earrings:1,bangle:'#2f6fd6',grin:1};
+const ROSTER=[
+  {name:'Gus',skin:'#f1c27d',hair:'#3b2a1a',style:'short',shirt:'#4a90d9',pants:'#3d4a5c',shoes:'#5a3a22',mustache:1,size:1},
+  {name:'Marla',skin:'#ffdbac',hair:'#e8c15a',style:'long',shirt:'#e86fa6',pants:'#5a4a8a',shoes:'#fff',glasses:1,lash:1,size:.9},
+  {name:'Dante',skin:'#8d5524',hair:'#1b1b1b',style:'curly',shirt:'#f5a623',pants:'#2f4f6f',shoes:'#222',size:1.05},
+  {name:'Priya',skin:'#c68642',hair:'#1f1410',style:'bun',shirt:'#7bc67b',pants:'#3a3a3a',shoes:'#8b4513',lash:1,size:.95},
+  {name:'Old Man Ferris',skin:'#f3d1b0',hair:'#d9d9d9',style:'bald',shirt:'#a67c52',pants:'#6b6b6b',shoes:'#3a2a1a',glasses:1,mustache:1,size:.85},
+  {name:'Kenji',skin:'#f0c8a0',hair:'#121212',style:'spiky',shirt:'#3fb0ac',pants:'#222c3a',shoes:'#fff',size:1},
+  {name:'Dolores',skin:'#e0ac69',hair:'#9b9b9b',style:'curly',shirt:'#9b59b6',pants:'#4a3a5a',shoes:'#333',glasses:1,lash:1,size:1.1},
+  {name:'Big Lou',skin:'#ffcc99',hair:'#a0522d',style:'short',shirt:'#2ecc71',pants:'#2c3e50',shoes:'#111',hat:'#e74c3c',beard:1,size:1.15},
+  {name:'Trina',skin:'#5c3a21',hair:'#2a1a10',style:'ponytail',shirt:'#00bcd4',pants:'#455a64',shoes:'#fff',lash:1,size:.95},
+  {name:'Sunny',skin:'#ffe0bd',hair:'#ff9800',style:'long',shirt:'#ffeb3b',pants:'#3f51b5',shoes:'#e91e63',lash:1,size:1},
+  {name:'Hector',skin:'#c68642',hair:'#2b1b10',style:'short',shirt:'#795548',pants:'#212121',shoes:'#4e342e',mustache:1,hat:'#1e88e5',size:1.05},
+  {name:'Beatrix',skin:'#ffdbac',hair:'#b71c1c',style:'bun',shirt:'#4caf50',pants:'#263238',shoes:'#000',glasses:1,lash:1,size:1},
+  {name:'Ziggy',skin:'#f1c27d',hair:'#8e24aa',style:'spiky',shirt:'#212121',pants:'#424242',shoes:'#d32f2f',size:.9},
+  {name:'Carmen',skin:'#d4a373',hair:'#3e2723',style:'long',shirt:'#e53935',pants:'#1a237e',shoes:'#6d4c41',lash:1,size:1.1},
+  {name:'Doug',skin:'#ffd7b5',hair:'#c8a165',style:'short',shirt:'#607d8b',pants:'#37474f',shoes:'#212121',beard:1,size:1.1},
+  {name:'Mrs. Pemberton',skin:'#f3d1b0',hair:'#eeeeee',style:'bun',shirt:'#ce93d8',pants:'#6a1b9a',shoes:'#4a148c',glasses:1,lash:1,size:1},
+];
+const RANKS=['Bagger Trainee','Junior Bagger','Bagger','Senior Bagger','Cart Captain','Lane Legend','Sort Master','Sorteria Royalty'];
+const need=r=>125*(r-1)*r;
+const rankOf=p=>{let r=1;while(p>=need(r+1))r++;return r};
+const rankName=r=>r<=RANKS.length?RANKS[r-1]:RANKS[RANKS.length-1]+' '+(r-RANKS.length+1);
+
+function diff(d){return{
+  cols:d<4?8:9, rows:d<4?5:6,
+  fill:Math.min(.42+.06*(d-1),.88),
+  speed:Math.min(46+8*(d-1),135),
+  gap:Math.max(64-6*(d-1),12),
+  teeter:Math.max(2-.15*(d-1),.7),
+  customers:Math.min(2+Math.ceil(d/1.5),9),
+  interval:Math.max(56-4.5*(d-1),22),
+  reqMax:d<2?0:d<5?1:d<8?2:3,
+  hints:d<=2
+}}
+
+/* ---------- save & audio ---------- */
+function loadSave(){try{const s=JSON.parse(localStorage.getItem('nscs-save'));if(s&&s.day)return s}catch(e){}return{day:1,points:0,tips:0,tut:false,mute:false}}
+let save=loadSave();
+function writeSave(){try{localStorage.setItem('nscs-save',JSON.stringify(save))}catch(e){}}
+let AC=null;
+function tone(f,d=.08,type='square',v=.05,slide=0){if(save.mute)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(40,f+slide),t+d);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d+.02)}catch(e){}}
+const SFX={pick:()=>tone(660,.06,'triangle',.09),place:()=>tone(240,.1,'square',.05,-90),drop:()=>tone(320,.4,'sawtooth',.06,-260),
+  ding:()=>{tone(1320,.25,'sine',.09);setTimeout(()=>tone(990,.35,'sine',.08),130)},cash:()=>{tone(1568,.08,'square',.05);setTimeout(()=>tone(2093,.2,'square',.05),80)},
+  bad:()=>tone(150,.2,'sawtooth',.05),rank:()=>[523,659,784,1047].forEach((f,i)=>setTimeout(()=>tone(f,.16,'triangle',.09),i*110)),blip:()=>tone(880,.04,'square',.03),
+  talk:()=>tone(500+Math.random()*300,.04,'triangle',.04)};
+
+/* ---------- Papa-style character art ---------- */
+function person(o,mood='smile'){
+  const I='#3a2414',S=`stroke="${I}" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"`,hc=o.hair,sk=o.skin,st=o.style;
+  let s=`<svg class="ppl" viewBox="0 0 200 300" xmlns="http://www.w3.org/2000/svg">`;
+  if(st==='long')s+=`<path d="M46 70 Q40 18 100 18 Q160 18 154 70 L166 180 Q100 194 34 180 Z" fill="${hc}" ${S}/>`;
+  if(st==='natalie')s+=`<path d="M46 70 Q34 14 100 14 Q166 14 154 70 Q174 104 160 136 Q176 168 158 198 Q138 214 122 196 Q112 204 100 200 Q88 204 78 196 Q62 214 42 198 Q24 168 40 136 Q26 104 46 70 Z" fill="${hc}" ${S}/><path d="M150 120 Q164 150 152 182 M52 120 Q38 150 48 182" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="4" stroke-linecap="round"/>`;
+  if(st==='ponytail')s+=`<path d="M126 36 Q194 40 182 124 Q176 166 150 176 Q166 124 148 92 Q140 70 118 56 Z" fill="${hc}" ${S}/><path d="M160 70 Q174 100 166 140" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="4" stroke-linecap="round"/>`;
+  if(st==='bun')s+=`<circle cx="100" cy="22" r="20" fill="${hc}" ${S}/>`;
+  // legs & shoes
+  s+=`<rect x="72" y="212" width="25" height="66" rx="10" fill="${o.pants}" ${S}/><rect x="103" y="212" width="25" height="66" rx="10" fill="${o.pants}" ${S}/>`;
+  s+=`<path d="M58 288 Q58 270 84 272 Q99 274 98 288 Z" fill="${o.shoes}" ${S}/><path d="M142 288 Q142 270 116 272 Q101 274 102 288 Z" fill="${o.shoes}" ${S}/>`;
+  // arms (outlined thick strokes)
+  for(const d of ['M66 156 Q46 172 44 212','M134 156 Q154 172 156 212']){s+=`<path d="${d}" fill="none" stroke="${I}" stroke-width="27" stroke-linecap="round"/><path d="${d}" fill="none" stroke="${o.arms||o.shirt}" stroke-width="19" stroke-linecap="round"/>`}
+  if(o.bangle)s+=`<ellipse cx="44" cy="206" rx="13" ry="5" fill="none" stroke="${I}" stroke-width="7"/><ellipse cx="44" cy="206" rx="13" ry="5" fill="none" stroke="${o.bangle}" stroke-width="4"/>`;
+  s+=`<circle cx="44" cy="222" r="11" fill="${sk}" ${S}/><circle cx="156" cy="222" r="11" fill="${sk}" ${S}/>`;
+  // torso & neck
+  if(o.arms)s+=`<path d="M60 152 Q100 136 140 152 L146 224 Q100 234 54 224 Z" fill="${sk}" ${S}/><path d="M60 162 Q100 168 140 162 L143 202 Q100 208 57 202 Z" fill="${o.shirt}" ${S}/><path d="M55 210 Q100 216 145 210 L146 226 Q100 234 54 226 Z" fill="${o.pants}" ${S}/><circle cx="100" cy="218" r="3" fill="#c9a24a"/>`;
+  else s+=`<path d="M60 152 Q100 136 140 152 L146 224 Q100 234 54 224 Z" fill="${o.shirt}" ${S}/>`;
+  s+=`<path d="M88 122 L88 146 Q100 154 112 146 L112 122 Z" fill="${sk}" ${S}/>`;
+  if(o.collar)s+=`<path d="M84 142 L100 158 L90 168 L76 150 Z M116 142 L100 158 L110 168 L124 150 Z" fill="#fff" ${S} stroke-width="3"/>`;
+  if(o.tag)s+=`<rect x="106" y="174" width="34" height="14" rx="3" fill="#fff" stroke="${I}" stroke-width="2.5"/><text x="123" y="184.5" font-size="7.6" text-anchor="middle" font-weight="900" fill="#d7262e" font-family="Nunito,sans-serif">${o.tag}</text>`;
+  // ears & head
+  s+=`<ellipse cx="47" cy="90" rx="10" ry="13" fill="${sk}" ${S}/><ellipse cx="153" cy="90" rx="10" ry="13" fill="${sk}" ${S}/>`;
+  s+=`<ellipse cx="100" cy="82" rx="54" ry="58" fill="${sk}" ${S}/>`;
+  if(o.beard)s+=`<path d="M48 92 Q54 152 100 148 Q146 152 152 92 Q140 128 100 128 Q60 128 48 92 Z" fill="${hc}" ${S}/>`;
+  // front hair
+  if(st==='natalie'){s+=`<path d="M46 100 Q34 22 100 20 Q166 22 154 100 Q150 62 130 42 Q114 34 100 30 Q86 34 70 42 Q50 62 46 100 Z" fill="${hc}" ${S}/><path d="M50 66 Q32 116 46 170 Q58 150 58 120 Q56 94 62 78 Z" fill="${hc}" ${S}/><path d="M150 66 Q168 116 154 170 Q142 150 142 120 Q144 94 138 78 Z" fill="${hc}" ${S}/><path d="M100 21 L100 31" stroke="#24130b" stroke-width="3" stroke-linecap="round"/><path d="M68 34 Q84 26 96 26 M104 26 Q118 26 132 34" stroke="rgba(255,255,255,.28)" stroke-width="5" fill="none" stroke-linecap="round"/>`;
+    if(o.earrings)s+=`<path d="M58 106 L58 114 M142 106 L142 114" stroke="#c9a24a" stroke-width="2.5"/><circle cx="58" cy="117" r="3.6" fill="#f3d36b" stroke="${I}" stroke-width="1.5"/><circle cx="142" cy="117" r="3.6" fill="#f3d36b" stroke="${I}" stroke-width="1.5"/>`}
+  else if(st==='ponytail')s+=`<path d="M44 90 Q36 20 102 20 Q166 22 156 90 Q150 58 132 48 Q104 64 66 56 Q52 68 44 90 Z" fill="${hc}" ${S}/>`;
+  else if(st==='short')s+=`<path d="M46 86 Q38 18 100 18 Q162 18 154 86 Q150 52 128 46 Q100 56 70 46 Q50 56 46 86 Z" fill="${hc}" ${S}/>`;
+  else if(st==='long')s+=`<path d="M46 98 Q36 16 100 18 Q164 16 154 98 Q148 56 120 44 Q92 62 66 52 Q52 66 46 98 Z" fill="${hc}" ${S}/>`;
+  else if(st==='bun')s+=`<path d="M48 76 Q46 26 100 26 Q154 26 152 76 Q140 46 100 44 Q60 46 48 76 Z" fill="${hc}" ${S}/>`;
+  else if(st==='spiky')s+=`<path d="M46 82 L42 40 L62 50 L64 14 L84 38 L100 6 L114 36 L136 12 L138 48 L160 40 L154 82 Q140 54 100 52 Q60 54 46 82 Z" fill="${hc}" ${S}/>`;
+  else if(st==='bald')s+=`<path d="M46 66 Q40 90 50 106 Q54 86 60 74 Z" fill="${hc}" ${S}/><path d="M154 66 Q160 90 150 106 Q146 86 140 74 Z" fill="${hc}" ${S}/><path d="M80 34 Q96 28 112 32" stroke="rgba(255,255,255,.6)" stroke-width="5" fill="none" stroke-linecap="round"/>`;
+  else if(st==='curly'){for(let i=0;i<9;i++){const a=Math.PI*(1.05+i*.9/8);s+=`<circle cx="${(100+52*Math.cos(a)).toFixed(1)}" cy="${(78+56*Math.sin(a)).toFixed(1)}" r="17" fill="${hc}" ${S}/>`}s+=`<ellipse cx="100" cy="46" rx="44" ry="22" fill="${hc}"/>`}
+  if(o.hat)s+=`<path d="M44 62 Q46 10 100 10 Q154 10 156 62 Z" fill="${o.hat}" ${S}/><path d="M100 56 Q150 52 184 64 Q180 76 150 72 L100 64 Z" fill="${o.hat}" ${S}/>`;
+  // brows
+  const bc=hc==='#eeeeee'||hc==='#d9d9d9'?'#9a9a9a':hc;
+  const brow={angry:['M68 60 L92 70','M108 70 L132 60'],sad:['M68 68 L92 60','M108 60 L132 68'],worried:['M68 68 L92 58','M108 58 L132 68']}[mood]||['M68 68 Q80 59 92 66','M108 66 Q120 59 132 68'];
+  // eyes
+  for(const ex of [80,120]){const ix=ex+(ex<100?2:-2);s+=`<ellipse cx="${ex}" cy="88" rx="12.5" ry="15.5" fill="#fff" stroke="${I}" stroke-width="3"/><circle cx="${ix}" cy="91" r="8.8" fill="${o.eye||'#4a2c17'}"/><circle cx="${ix}" cy="91" r="4.4" fill="#140a05"/><circle cx="${ix+3}" cy="87" r="2.9" fill="#fff"/>`}
+  if(mood==='sad'||mood==='angry')for(const ex of [80,120])s+=`<path d="M${ex-14} ${mood==='angry'?(ex<100?80:86):84} Q${ex} ${mood==='angry'?72:70} ${ex+14} ${mood==='angry'?(ex<100?86:80):84} L${ex+14} 70 L${ex-14} 70 Z" fill="${sk}"/><path d="M${ex-13} ${mood==='angry'?(ex<100?80:86):84} L${ex+13} ${mood==='angry'?(ex<100?86:80):84}" stroke="${I}" stroke-width="3"/>`;
+  if(o.lash)s+=`<path d="M68 79 L61 73 M71 75 L66 68 M132 79 L139 73 M129 75 L134 68" stroke="${I}" stroke-width="3" stroke-linecap="round"/>`;
+  s+=`<path d="${brow[0]}" stroke="${bc}" stroke-width="5" fill="none" stroke-linecap="round"/><path d="${brow[1]}" stroke="${bc}" stroke-width="5" fill="none" stroke-linecap="round"/>`;
+  if(o.glasses)s+=`<circle cx="80" cy="88" r="18" fill="rgba(255,255,255,.12)" stroke="${I}" stroke-width="3.5"/><circle cx="120" cy="88" r="18" fill="rgba(255,255,255,.12)" stroke="${I}" stroke-width="3.5"/><path d="M98 86 L102 86" stroke="${I}" stroke-width="3.5"/>`;
+  s+=`<path d="M100 96 Q108 106 98 109" fill="none" stroke="${I}" stroke-width="3" stroke-linecap="round"/>`;
+  s+=`<ellipse cx="68" cy="110" rx="9" ry="6" fill="#ff7b7b" opacity=".45"/><ellipse cx="132" cy="110" rx="9" ry="6" fill="#ff7b7b" opacity=".45"/>`;
+  const M={happy:`<path d="M83 114 Q100 138 117 114 Z" fill="#9b1c1c" stroke="${I}" stroke-width="3" stroke-linejoin="round"/><path d="M92 125 Q100 131 108 125 Q100 120 92 125" fill="#ff7b7b"/>`,
+    smile:`<path d="M86 117 Q100 129 114 117" fill="none" stroke="${I}" stroke-width="3.5" stroke-linecap="round"/>`,
+    neutral:`<path d="M89 121 L111 121" stroke="${I}" stroke-width="3.5" stroke-linecap="round"/>`,
+    sad:`<path d="M86 127 Q100 113 114 127" fill="none" stroke="${I}" stroke-width="3.5" stroke-linecap="round"/>`,
+    angry:`<path d="M86 126 Q100 112 114 126 Z" fill="#9b1c1c" stroke="${I}" stroke-width="3" stroke-linejoin="round"/>`,
+    worried:`<ellipse cx="100" cy="122" rx="7" ry="9" fill="#9b1c1c" stroke="${I}" stroke-width="3"/>`};
+  if(o.grin&&(mood==='happy'||mood==='smile'))s+=`<path d="M80 112 Q100 ${mood==='happy'?142:134} 120 112 Q100 117 80 112 Z" fill="#fff" stroke="${I}" stroke-width="3" stroke-linejoin="round"/><path d="M84 117 Q100 ${mood==='happy'?126:122} 116 117" fill="none" stroke="#d9cfc6" stroke-width="2"/>`;
+  else s+=M[mood]||M.smile;
+  if(o.mustache)s+=`<path d="M82 114 Q91 104 100 111 Q109 104 118 114 Q108 121 100 116 Q92 121 82 114 Z" fill="${hc}" stroke="${I}" stroke-width="3" stroke-linejoin="round"/>`;
+  return s+'</svg>';
+}
+
+/* ---------- stage scaling ---------- */
+const stage=$('#stage');
+function fit(){const k=Math.min(innerWidth/960,innerHeight/600);stage.style.transform=`scale(${k})`}
+addEventListener('resize',fit);fit();
+function stagePt(e){const r=stage.getBoundingClientRect(),k=r.width/960;return{x:(e.clientX-r.left)/k,y:(e.clientY-r.top)/k}}
+stage.addEventListener('contextmenu',e=>e.preventDefault());
+
+function buildShelves(el){const cols=['#e53935','#fdd835','#43a047','#1e88e5','#fb8c00','#8e24aa','#f06292','#26c6da','#8d6e63','#fff'];let h='';
+  for(let u=0;u<4;u++){h+=`<div class="shelf" style="left:${u*240+8}px">`;for(let r=0;r<3;r++){h+='<div class="srow">';for(let i=0;i<10;i++)h+=`<b style="width:${10+Math.random()*12|0}px;height:${20+Math.random()*30|0}px;background:${pick(cols)}"></b>`;h+='</div>'}h+='</div>'}el.innerHTML=h}
+['#shelvesO','#shelvesS','#shelvesV'].forEach(s=>buildShelves($(s)));
+
+/* ---------- modal & toast ---------- */
+function modal(html,buttons){const m=$('#modal');m.innerHTML=`<div class="card">${html}<div class="btns"></div></div>`;const b=m.querySelector('.btns');
+  buttons.forEach(([label,cls,fn])=>{const x=document.createElement('button');x.className='btn '+cls;x.innerHTML=label;x.onclick=()=>{m.classList.remove('on');fn&&fn()};b.appendChild(x)});m.classList.add('on')}
+function toast(t){const d=document.createElement('div');d.textContent=t;const w=$('#toast');w.innerHTML='';w.appendChild(d)}
+
+/* ---------- grid helpers ---------- */
+function landRow(grid,cols,rows,c,w,h){let floor=rows;for(let x=c;x<c+w;x++)for(let y=0;y<rows;y++)if(grid[y*cols+x]!=null){if(y<floor)floor=y;break}return floor-h}
+function stamp(grid,cols,id,c,r,w,h){for(let y=r;y<r+h;y++)for(let x=c;x<c+w;x++)grid[y*cols+x]=id}
+function unstamp(grid,id){for(let i=0;i<grid.length;i++)if(grid[i]===id)grid[i]=null}
+function anyBelow(grid,cols,rows,c,startRow,w,test){for(let x=c;x<c+w;x++)for(let y=startRow;y<rows;y++){const id=grid[y*cols+x];if(id!=null&&test(id))return true}return false}
+
+/* ---------- order generation (always packable) ---------- */
+function genOrder(d,rank,def){
+  const D=diff(d),cols=D.cols,rows=D.rows,pool=Object.keys(ITEMS).filter(k=>(ITEMS[k].r||1)<=rank);
+  const grid=new Array(cols*rows).fill(null),info=[];
+  const target=Math.min(Math.round(cols*rows*D.fill*def.size*(.92+Math.random()*.16)),Math.floor(cols*rows*.9));
+  let filled=0,tries=0;
+  while(filled<target&&tries++<600){
+    const k=pick(pool),it=ITEMS[k];let w=it.w,h=it.h;if(w!==h&&Math.random()<.35)[w,h]=[h,w];
+    if(filled+w*h>target+1)continue;
+    let best=[],bestR=-1;
+    for(let c=0;c<=cols-w;c++){const r=landRow(grid,cols,rows,c,w,h);if(r<0)continue;
+      if(it.heavy&&anyBelow(grid,cols,rows,c,r+h,w,id=>info[id].fragile))continue;
+      if(r>bestR){bestR=r;best=[c]}else if(r===bestR)best.push(c)}
+    if(!best.length)continue;
+    const c=pick(best);info.push({k,fragile:!!it.fragile});stamp(grid,cols,info.length-1,c,bestR,w,h);filled+=w*h;
+  }
+  const keys=info.map(i=>i.k),reqs=[],seatKeys=[];
+  const n=D.reqMax?rint(Math.max(1,D.reqMax-1),D.reqMax):0;
+  for(const t of shuffle(['seat','top','bottom','cold'])){
+    if(reqs.length>=n)break;
+    if(t==='seat'){const k=pick(pool.filter(k=>!ITEMS[k].heavy));seatKeys.push(k);reqs.push({t,k})}
+    if(t==='top'){const f=keys.filter(k=>ITEMS[k].fragile);if(f.length)reqs.push({t,k:pick(f)})}
+    if(t==='bottom'){const f=keys.filter(k=>ITEMS[k].heavy);if(f.length)reqs.push({t,k:pick(f)})}
+    if(t==='cold'&&[...keys,...seatKeys].filter(k=>ITEMS[k].cold).length>=2)reqs.push({t});
+  }
+  return{items:shuffle([...keys,...seatKeys]),reqs,cols,rows};
+}
+function reqText(q){const it=ITEMS[q.k]||{};return{seat:`${it.e} ${it.n} in the KID SEAT`,top:`${it.e} ${it.n} on TOP (nothing above it)`,bottom:`${it.e} ${it.n} on the BOTTOM`,cold:`❄ Keep cold items TOUCHING`}[q.t]}
+function reqSay(q){const it=ITEMS[q.k]||{};return{seat:`Put my ${it.n.toLowerCase()} in the kid seat!`,top:`Keep my ${it.n.toLowerCase()} on top, please!`,bottom:`${it.n} goes on the bottom.`,cold:`Keep my cold stuff together!`}[q.t]}
+
+/* ---------- day state ---------- */
+let G=null,S=null,drag=null;
+function startDay(){
+  const D=diff(save.day);
+  G={day:save.day,t:0,total:D.customers,arrived:0,nextArrive:2,queue:[],waiting:[],tickets:[],served:0,left:0,strikes:0,start:{points:save.points,tips:save.tips},taking:null,paused:true,station:'order',used:[],cid:0,dayTips:0,dayPoints:0,results:[],rank0:rankOf(save.points)};
+  S=null;$('#olayer').innerHTML='';$('#bubble').style.display='none';$('#takeBtn').style.display='none';
+  showScreen('game');showStation('order');renderNat();renderRail();
+  const prev=save.day>1?diff(save.day-1):null,notes=[];
+  if(!prev)notes.push('Welcome to the Big Y checkout, Natalie!','⏳ Watch the patience timers! 3 walkouts and you fail the day.','Take each customer\'s order, then sort their groceries off the belt and into their cart so everything FITS.','Heavy stuff below, fragile stuff on top!');
+  else{if(D.cols>prev.cols)notes.push('🛒 Bigger carts — and way more groceries!');
+    notes.push(`⚡ Belt speed: ${Math.round(D.speed/40*100)}%`);
+    if(D.fill>prev.fill)notes.push(`📦 Carts will be packed ${Math.round(D.fill*100)}% full`);
+    if(save.day<=10)notes.push('⏳ Customers lose patience a little faster');
+    if(D.reqMax>prev.reqMax)notes.push(`📝 Customers now ask for up to ${D.reqMax} special request${D.reqMax>1?'s':''}`);
+    if(D.customers>prev.customers)notes.push(`👥 ${D.customers} customers today`);
+    if(D.teeter<prev.teeter)notes.push('⏱ Items tip off the end of the belt faster');
+    if(prev.hints&&!D.hints)notes.push('🙈 No more drop hints — you\'re on your own!');}
+  modal(`<h1>Day ${save.day}</h1><h2>${rankName(rankOf(save.points))}</h2><ul>${notes.map(n=>`<li>${n}</li>`).join('')}</ul>`,[['Open the Lane! ➜','green',()=>{G.paused=false}]]);
+}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id))}
+function showStation(s){if(drag)return;G.station=s;document.querySelectorAll('.station').forEach(x=>x.classList.toggle('on',x.id===s));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.s===s));$('#bar').style.display=s==='serve'?'none':'flex';
+  if(s==='sort')enterSort();$('#belt').classList.toggle('run',s==='sort'&&!!S&&S.running);}
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{if(G&&!G.paused){SFX.blip();showStation(t.dataset.s)}});
+
+function renderNat(){$('#natO').innerHTML=person(NAT,'smile');setNatMood('smile',true)}
+let natMood='',natTimer=0;
+function setNatMood(m,force){if(m===natMood&&!force)return;natMood=m;$('#natS').innerHTML=person(NAT,m)}
+
+/* ---------- customers / order station ---------- */
+function arrive(){
+  const avail=ROSTER.slice(0,Math.min(ROSTER.length,5+G.day));let pool=avail.filter(r=>!G.used.includes(r.name));if(!pool.length)pool=avail;
+  const def=pick(pool);G.used.push(def.name);
+  const c={id:++G.cid,def,arrive:G.t,mood:'smile'};c.order=genOrder(G.day,rankOf(save.points),def);
+  const D=diff(G.day),N=c.order.items.length;c.est=Math.round(20+N*((80+D.gap)/D.speed)+N*1.1+c.order.reqs.length*3);
+  const el=document.createElement('div');el.className='cust walk';el.style.left='-170px';el.style.top='236px';el.innerHTML=`<div class="pbar"><i></i><span></span></div><div class="fig">${person(def,'smile')}</div>`;c.patience=Math.round(c.est*Math.max(1.45,2-.06*(G.day-1)));
+  $('#olayer').appendChild(el);c.el=el;G.queue.push(c);G.arrived++;
+  requestAnimationFrame(()=>requestAnimationFrame(layoutPeople));setTimeout(()=>{el.classList.remove('walk');if(G.queue[0]===c){SFX.ding();toast&&0}},1000);
+  if(G.queue.length===1)setTimeout(SFX.ding,900);
+}
+function layoutPeople(){
+  G.queue.forEach((c,i)=>{c.el.style.left=(236-i*92)+'px';c.el.style.top='236px';c.el.style.transform=`scale(${i?.9:1})`;c.el.style.zIndex=20-i});
+  G.waiting.forEach((c,j)=>{c.el.style.left=Math.min(712+j*44,830)+'px';c.el.style.top='238px';c.el.style.transform='scale(.72)';c.el.style.zIndex=10+j});
+  $('#takeBtn').style.display=G.queue.length&&!G.taking?'block':'none';
+}
+function setMood(c,m){if(c.mood===m)return;c.mood=m;c.el.querySelector('.fig').innerHTML=person(c.def,m)}
+const frozen=c=>c===G.taking||(S&&S.cust===c);
+function tickPatience(){
+  for(const c of [...G.queue,...G.waiting]){
+    c.el.classList.toggle('active',frozen(c));if(frozen(c))continue;
+    const f=(G.t-c.arrive)/c.patience,left=Math.max(0,Math.ceil(c.patience-(G.t-c.arrive))),bar=c.el.querySelector('.pbar');
+    bar.querySelector('i').style.width=Math.max(0,100-f*100)+'%';bar.querySelector('i').style.background=f<.5?'#4caf50':f<.75?'#ffc107':'#f44336';
+    bar.querySelector('span').textContent=left+'s';bar.classList.toggle('low',f>=.8);
+    setMood(c,f<.45?'smile':f<.65?'neutral':f<.82?'sad':'angry');
+    if(f>=.8&&!c.warned){c.warned=1;SFX.bad();if(G.station==='sort')toast(`${c.def.name} is about to leave!`)}
+    if(f>=1)walkOut(c);
+  }
+}
+function walkOut(c){
+  G.queue=G.queue.filter(x=>x!==c);G.waiting=G.waiting.filter(x=>x!==c);G.tickets=G.tickets.filter(x=>x!==c);
+  G.left++;G.strikes++;SFX.drop();setMood(c,'angry');
+  c.el.insertAdjacentHTML('beforeend',`<div class="huff">${pick(['Forget it!','Hmph! 😤','I\'m outta here!','Too slow!'])}</div>`);
+  c.el.querySelector('.pbar').style.display='none';c.el.style.transform='scale(.9)';c.el.classList.add('walk','leave');setTimeout(()=>c.el.remove(),1500);
+  layoutPeople();renderRail();if(G.station==='sort'&&!S)enterSort();
+  toast(`${c.def.name} walked out! (${G.strikes}/3)`);
+  if(G.strikes>=3){G.paused=true;setTimeout(dayFailed,900);return}
+  if(G.served+G.left>=G.total&&!S)setTimeout(daySummary,900);
+}
+function dayFailed(){
+  if(drag){drag=null;$('#ghost').style.display='none'}
+  modal(`<h1>Day Failed!</h1><h2>3 customers walked out of Lane 3 😤</h2><p style="font-weight:800">The manager wants you to try today again. Points and tips from this attempt are lost.</p>`,
+    [['Title','blue',()=>{save.points=G.start.points;save.tips=G.start.tips;writeSave();showTitle()}],['Retry Day '+G.day,'green',()=>{save.points=G.start.points;save.tips=G.start.tips;writeSave();startDay()}]]);
+}
+$('#takeBtn').onclick=async()=>{
+  const c=G.queue[0];if(!c||G.taking||G.paused)return;G.taking=c;$('#takeBtn').style.display='none';SFX.blip();
+  const b=$('#bubble');b.style.display='block';b.innerHTML=`<div class="nm">${c.def.name}</div><div class="chips"></div><div class="rq"></div>`;
+  setMood(c,'happy');
+  for(const k of c.order.items){await wait(200);const it=ITEMS[k];b.querySelector('.chips').insertAdjacentHTML('beforeend',`<span class="chip" style="background:${it.c}" title="${it.n}">${it.e}</span>`);SFX.talk()}
+  for(const q of c.order.reqs){await wait(500);b.querySelector('.rq').insertAdjacentHTML('beforeend',`<div class="reqline">💬 “${reqSay(q)}”</div>`);SFX.talk()}
+  await wait(900);
+  $('#regScr').textContent='$'+(c.order.items.length*3.49).toFixed(2);
+  G.queue.shift();G.waiting.push(c);G.tickets.push(c);G.taking=null;b.style.display='none';setMood(c,'smile');
+  c.el.classList.add('walk');setTimeout(()=>c.el.classList.remove('walk'),1000);SFX.cash();
+  layoutPeople();renderRail();
+  if(!save.tut)toast('Order ticket printed! Head to the 🛒 Sort station.');
+};
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+function renderRail(){const h=[];if(S)h.push(`<div class="mini act"><b>${S.cust.def.name}</b>SORTING<br>${S.cust.order.items.length} items</div>`);
+  G.tickets.forEach(c=>h.push(`<div class="mini"><b>${c.def.name}</b>${c.order.items.length} items<br>${c.order.reqs.length?'📝'.repeat(c.order.reqs.length):''}</div>`));
+  $('#railT').innerHTML=h.join('')}
+
+/* ---------- sort station ---------- */
+let CART_X=170,CART_Y=236,SEAT_X=0,SEAT_Y=0;
+function enterSort(){
+  const p=$('#startPanel');
+  if(S){p.style.display='none';return}
+  $('#ticket').style.display='none';$('#cartsvg').innerHTML='';$('#serveBtn').style.display='none';$('#rotBtn').style.display='none';
+  p.style.display='block';
+  if(G.tickets.length){const c=G.tickets[0];
+    p.innerHTML=`<h2>Next up: ${c.def.name}</h2><div class="chips" style="justify-content:center">${c.order.items.map(k=>`<span class="chip" style="background:${ITEMS[k].c}">${ITEMS[k].e}</span>`).join('')}</div>${c.order.reqs.map(q=>`<div class="reqline">📝 ${reqText(q)}</div>`).join('')}<br><button class="btn green pulse" id="goBtn">Start the Belt! ▶</button>`;
+    $('#goBtn').onclick=()=>{if(!save.tut){howTo(()=>{save.tut=true;writeSave();startSort()})}else startSort()};
+  }else p.innerHTML=`<h2>No orders yet!</h2><p style="font-weight:800">Go to the 🧾 Order station and take a customer's order first.</p>`;
+}
+function howTo(done){modal(`<h1>How to Sort</h1><ul>
+<li>Groceries ride down the belt. <b>Drag</b> each one into the cart.</li>
+<li>Items <b>drop straight down</b> — like stacking blocks. Fill the gaps so everything fits!</li>
+<li><b>Tap</b> an item (or press <b>R</b>, right-click, or ⟳ while dragging) to <b>rotate</b> it.</li>
+<li><i class="hv" style="font-style:normal;color:#fff;padding:0 5px;border-radius:8px">⬇</i> <b>Heavy</b> &nbsp; <i class="fr" style="font-style:normal;color:#fff;padding:0 6px;border-radius:8px">!</i> <b>Fragile</b> &nbsp; <i class="cd" style="font-style:normal;color:#fff;padding:0 4px;border-radius:8px">❄</i> <b>Cold</b> — put something heavy above something fragile and it gets <b>SQUASHED</b> — gone for good, and it still takes up space!</li>
+<li>No stopper on the belt — items <b>fall off the end</b> if you're too slow, and every drop costs you big on Packing and tips. Park extras on the <b>counter</b>.</li>
+<li>Follow special requests on the ticket, then hit <b>Serve ✔</b>. Every customer has a <b>patience timer</b> — if it runs out they <b>walk out</b>. 3 walkouts and the day is over!</li></ul>`,[['Got it!','green',done]])}
+
+function startSort(){
+  const c=G.tickets.shift(),D=diff(G.day);
+  S={cust:c,cols:c.order.cols,rows:c.order.rows,pcs:{},belt:[],hold:[null,null],toSpawn:[...c.order.items],dropped:[],squashed:[],nid:0,running:true,done:false,confirm:0,
+     speed:D.speed,gap:D.gap,teeterMax:D.teeter,hints:D.hints};
+  S.grid=new Array(S.cols*S.rows).fill(null);S.seat=new Array(SEATC*SEATR).fill(null);
+  CART_X=S.cols===8?190:168;CART_Y=ROWS_BOTTOM-S.rows*CELL;SEAT_X=CART_X+S.cols*CELL+18;SEAT_Y=CART_Y-22;
+  drawCart();$('#startPanel').style.display='none';$('#ticket').style.display='block';$('#serveBtn').style.display='block';$('#rotBtn').style.display='block';
+  $('#serveBtn').textContent='Serve ✔';$('#serveBtn').classList.remove('pulse');
+  $('#belt').classList.add('run');$('#belt .bs').style.animationDuration=(44/S.speed)+'s';
+  renderTicket();renderRail();setNatMood('smile');
+}
+function drawCart(){
+  const W=S.cols*CELL,H=S.rows*CELL,I='#3a2414',sx2=SEAT_X+SEATC*CELL;let s='';
+  s+=`<path d="M${CART_X+14} ${CART_Y+H+6} L${CART_X+34} ${CART_Y+H+30} L${sx2-6} ${CART_Y+H+30} L${sx2+6} ${SEAT_Y+SEATR*CELL+4}" fill="none" stroke="#5b6773" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>`;
+  for(const x of [CART_X+44,CART_X+W-24,sx2-20])s+=`<circle cx="${x}" cy="${CART_Y+H+42}" r="13" fill="#333" stroke="${I}" stroke-width="3"/><circle cx="${x}" cy="${CART_Y+H+42}" r="4" fill="#bbb"/>`;
+  s+=`<rect x="${CART_X-7}" y="${CART_Y-7}" width="${W+14}" height="${H+14}" rx="10" fill="#eef2f6" stroke="#5b6773" stroke-width="7"/>`;
+  for(let c=1;c<S.cols;c++)s+=`<line x1="${CART_X+c*CELL}" y1="${CART_Y}" x2="${CART_X+c*CELL}" y2="${CART_Y+H}" stroke="#c9d2dc" stroke-width="2"/>`;
+  for(let r=1;r<S.rows;r++)s+=`<line x1="${CART_X}" y1="${CART_Y+r*CELL}" x2="${CART_X+W}" y2="${CART_Y+r*CELL}" stroke="#c9d2dc" stroke-width="2"/>`;
+  s+=`<rect x="${SEAT_X-6}" y="${SEAT_Y-6}" width="${SEATC*CELL+12}" height="${SEATR*CELL+12}" rx="10" fill="#fff0f0" stroke="#c62828" stroke-width="6"/>`;
+  for(let c=1;c<SEATC;c++)s+=`<line x1="${SEAT_X+c*CELL}" y1="${SEAT_Y}" x2="${SEAT_X+c*CELL}" y2="${SEAT_Y+SEATR*CELL}" stroke="#f3c0c0" stroke-width="2"/>`;
+  s+=`<line x1="${SEAT_X}" y1="${SEAT_Y+CELL}" x2="${sx2}" y2="${SEAT_Y+CELL}" stroke="#f3c0c0" stroke-width="2"/>`;
+  s+=`<text x="${SEAT_X+SEATC*CELL/2}" y="${SEAT_Y-12}" text-anchor="middle" font-family="Lilita One" font-size="15" fill="#c62828">KID SEAT</text>`;
+  s+=`<path d="M${sx2+3} ${SEAT_Y} L${sx2+24} ${SEAT_Y-30}" stroke="#5b6773" stroke-width="7" stroke-linecap="round"/><path d="M${sx2+10} ${SEAT_Y-34} L${sx2+40} ${SEAT_Y-34}" stroke="${I}" stroke-width="16" stroke-linecap="round"/><path d="M${sx2+10} ${SEAT_Y-34} L${sx2+40} ${SEAT_Y-34}" stroke="#d7262e" stroke-width="10" stroke-linecap="round"/>`;
+  $('#cartsvg').innerHTML=s;
+}
+function makePiece(k){
+  const it=ITEMS[k],p={id:++S.nid,k,w:it.w,h:it.h,where:'belt',x:0,teeter:0,heavy:!!it.heavy,fragile:!!it.fragile,cold:!!it.cold};
+  const el=document.createElement('div');el.className='pc pop';el.dataset.id=p.id;el.style.background=it.c;
+  el.innerHTML=`<span class="em">${it.e}</span><span class="lbl">${it.n}</span><span class="bdg">${it.heavy?'<i class="hv">⬇</i>':''}${it.fragile?'<i class="fr">!</i>':''}${it.cold?'<i class="cd">❄</i>':''}</span>`;
+  p.el=el;sizePiece(p);$('#pcs').appendChild(el);S.pcs[p.id]=p;setTimeout(()=>el.classList.remove('pop'),260);return p;
+}
+function sizePiece(p){p.el.style.width=(p.w*CELL-2)+'px';p.el.style.height=(p.h*CELL-2)+'px';p.el.classList.toggle('s1',p.w===1&&p.h===1||(p.w===1&&p.h>1));}
+function setXY(p,x,y){p.el.style.left=x+'px';p.el.style.top=y+'px'}
+function posPiece(p){
+  if(p.where==='belt')setXY(p,BX+p.x+1,BY+BH/2-p.h*CELL/2);
+  else if(p.where==='hold'){const h=HOLDS[p.slot];setXY(p,h.x+(h.w-p.w*CELL)/2,h.y+(h.h-p.h*CELL)/2-6)}
+  else if(p.where==='cart')setXY(p,CART_X+p.col*CELL+1,CART_Y+p.row*CELL+1);
+  else if(p.where==='seat')setXY(p,SEAT_X+p.col*CELL+1,SEAT_Y+p.row*CELL+1);
+}
+function tickBelt(dt){
+  if(S.toSpawn.length){const minX=S.belt.length?Math.min(...S.belt.map(id=>S.pcs[id].x)):1e9;if(minX>=S.gap){const p=makePiece(S.toSpawn.shift());S.belt.push(p.id);posPiece(p)}}
+  const arr=S.belt.map(id=>S.pcs[id]).sort((a,b)=>b.x-a.x);let lim=BW-4,worried=false;
+  arr.forEach((p,i)=>{const w=p.w*CELL;p.x=Math.min(p.x+S.speed*dt,lim-w);
+    if(i===0&&p.x+w>=lim-.5){p.teeter+=dt;worried=true;p.el.classList.add('teeter');if(p.teeter>=S.teeterMax){fall(p);return}}
+    else if(p.teeter){p.teeter=0;p.el.classList.remove('teeter')}
+    lim=p.x-6;posPiece(p)});
+  if(natTimer>0)natTimer-=dt;else setNatMood(worried?'worried':S.done?'happy':'smile');
+}
+function fall(p){S.belt=S.belt.filter(id=>id!==p.id);p.where='drop';p.el.classList.remove('teeter');p.el.classList.add('fall');S.dropped.push(p.k);
+  SFX.drop();toast(`Oops! The ${ITEMS[p.k].n} fell off the belt!`);setNatMood('sad');natTimer=1.6;setTimeout(()=>p.el.remove(),750);updateLive()}
+
+/* drag & drop */
+$('#pcs').addEventListener('pointerdown',e=>{
+  const el=e.target.closest('.pc');if(!el||!S||!S.running||drag||G.paused)return;const p=S.pcs[el.dataset.id];if(!p||p.where==='drop')return;e.preventDefault();
+  if(e.button===2){if(p.where==='belt'||p.where==='hold')rotateInPlace(p);return}
+  const pt=stagePt(e);drag={p,sx:pt.x,sy:pt.y,lx:pt.x,ly:pt.y,ox:pt.x-parseFloat(el.style.left),oy:pt.y-parseFloat(el.style.top),started:false,target:null};
+});
+addEventListener('pointermove',e=>{if(!drag)return;const pt=stagePt(e);drag.lx=pt.x;drag.ly=pt.y;
+  if(!drag.started){if(Math.hypot(pt.x-drag.sx,pt.y-drag.sy)<7)return;if(!beginDrag()){drag=null;return}}moveDrag()});
+addEventListener('pointerup',e=>{if(!drag)return;const d=drag;if(!d.started){drag=null;if(d.p.where==='belt'||d.p.where==='hold')rotateInPlace(d.p);return}endDrag()});
+addEventListener('pointercancel',()=>{if(drag&&drag.started){drag.target=null;endDrag()}else drag=null});
+addEventListener('mousedown',e=>{if(drag&&drag.started&&e.button===2)rotateDrag()});
+addEventListener('keydown',e=>{if(!drag||!drag.started)return;if(e.key==='r'||e.key==='R'||e.key===' '||e.key==='ArrowUp'){e.preventDefault();rotateDrag()}});
+addEventListener('wheel',e=>{if(drag&&drag.started){rotateDrag()}},{passive:true});
+$('#rotBtn').addEventListener('pointerdown',e=>{e.stopPropagation();if(drag&&drag.started)rotateDrag();else toast('Tap an item to rotate it — or press R while dragging')});
+
+function clearAbove(p){const g=p.where==='cart'?S.grid:S.seat,cols=p.where==='cart'?S.cols:SEATC;for(let x=p.col;x<p.col+p.w;x++)for(let y=0;y<p.row;y++)if(g[y*cols+x]!=null)return false;return true}
+function beginDrag(){
+  const p=drag.p;
+  if(p.squashed){p.el.classList.add('shake');setTimeout(()=>p.el.classList.remove('shake'),300);toast("That one's squashed flat — it's a goner!");SFX.bad();return false}
+  if((p.where==='cart'||p.where==='seat')&&!clearAbove(p)){p.el.classList.add('shake');setTimeout(()=>p.el.classList.remove('shake'),300);toast("Something's stacked on top of it!");SFX.bad();return false}
+  drag.origin={where:p.where,x:p.x,col:p.col,row:p.row,slot:p.slot,w:p.w,h:p.h};
+  if(p.where==='belt'){S.belt=S.belt.filter(id=>id!==p.id);p.teeter=0;p.el.classList.remove('teeter')}
+  else if(p.where==='hold')S.hold[p.slot]=null;
+  else if(p.where==='cart')unstamp(S.grid,p.id);else if(p.where==='seat')unstamp(S.seat,p.id);
+  p.where='drag';p.el.classList.add('drag');SFX.pick();updateLive();return drag.started=true;
+}
+function rotateDrag(){const p=drag.p;if(p.w===p.h)return;[p.w,p.h]=[p.h,p.w];sizePiece(p);drag.ox=p.w*CELL/2;drag.oy=p.h*CELL/2;SFX.blip();moveDrag()}
+function rotateInPlace(p){if(p.w===p.h)return;[p.w,p.h]=[p.h,p.w];sizePiece(p);posPiece(p);SFX.blip()}
+function moveDrag(){
+  const p=drag.p,left=drag.lx-drag.ox,top=drag.ly-drag.oy;setXY(p,left,top);
+  const t=drag.target=computeTarget(p,left,top),g=$('#ghost');
+  if(!t||t.kind==='hold'){g.style.display='none';return}
+  const gx=(t.kind==='cart'?CART_X:SEAT_X)+t.c*CELL,gy=(t.kind==='cart'?CART_Y:SEAT_Y)+Math.max(0,t.r)*CELL;
+  g.style.display='block';g.style.left=gx+'px';g.style.top=gy+'px';g.style.width=p.w*CELL+'px';g.style.height=p.h*CELL+'px';
+  g.className=!t.ok?'bad':(t.squish&&S.hints)?'warn':'';
+}
+function computeTarget(p,left,top){
+  const cx=left+p.w*CELL/2,cy=top+p.h*CELL/2;
+  for(let i=0;i<2;i++){const h=HOLDS[i];if(!S.hold[i]&&cx>h.x&&cx<h.x+h.w&&cy>h.y&&cy<h.y+h.h)return{kind:'hold',i}}
+  const mainR=CART_X+S.cols*CELL;
+  if(cx>=mainR+9&&cx<=SEAT_X+SEATC*CELL+40&&cy>=SEAT_Y-120&&cy<=SEAT_Y+SEATR*CELL+50){
+    if(p.w>SEATC)return{kind:'seat',c:0,r:-1,ok:false,why:'Too big for the kid seat!'};
+    const c=clamp(Math.round((left-SEAT_X)/CELL),0,SEATC-p.w),r=landRow(S.seat,SEATC,SEATR,c,p.w,p.h);
+    return{kind:'seat',c,r,ok:r>=0&&!p.heavy,why:p.heavy?'Too heavy for the kid seat!':'No room there!'}}
+  if(cx>=CART_X-40&&cx<mainR+9&&cy>=CART_Y-140&&cy<=CART_Y+S.rows*CELL+50){
+    const c=clamp(Math.round((left-CART_X)/CELL),0,S.cols-p.w),r=landRow(S.grid,S.cols,S.rows,c,p.w,p.h);
+    const squish=r>=0&&p.heavy&&anyBelow(S.grid,S.cols,S.rows,c,r+p.h,p.w,id=>S.pcs[id].fragile);
+    return{kind:'cart',c,r,ok:r>=0,squish,why:"It won't fit there!"}}
+  return null;
+}
+function endDrag(){
+  const d=drag;drag=null;const p=d.p,t=d.target;$('#ghost').style.display='none';p.el.classList.remove('drag');
+  if(t&&t.kind==='hold'){p.where='hold';p.slot=t.i;S.hold[t.i]=p.id;posPiece(p);SFX.place()}
+  else if(t&&t.ok){p.where=t.kind;p.col=t.c;p.row=t.r;stamp(t.kind==='cart'?S.grid:S.seat,t.kind==='cart'?S.cols:SEATC,p.id,t.c,t.r,p.w,p.h);
+    p.el.classList.add('anim');requestAnimationFrame(()=>posPiece(p));setTimeout(()=>p.el.classList.remove('anim'),200);SFX.place();
+    if(p.heavy)squashBelow(p)}
+  else{if(t&&t.why){toast(t.why);SFX.bad()}
+    const o=d.origin;p.where=o.where;
+    if(o.where==='belt'){p.x=Math.max(0,o.x);S.belt.push(p.id)}
+    else if(o.where==='hold'){if(p.w*CELL>130||p.h*CELL>130){[p.w,p.h]=[o.w,o.h]}S.hold[o.slot]=p.id}
+    else{[p.w,p.h]=[o.w,o.h];p.col=o.col;p.row=o.row;stamp(o.where==='cart'?S.grid:S.seat,o.where==='cart'?S.cols:SEATC,p.id,o.col,o.row,p.w,p.h)}
+    sizePiece(p);posPiece(p)}
+  updateLive();
+}
+
+/* live checks */
+function placed(){return Object.values(S.pcs).filter(p=>(p.where==='cart'||p.where==='seat')&&!p.squashed)}
+function squashBelow(h){const g=h.where==='cart'?S.grid:S.seat,cols=h.where==='cart'?S.cols:SEATC,rows=h.where==='cart'?S.rows:SEATR,hit=new Set();
+  for(let x=h.col;x<h.col+h.w;x++)for(let y=h.row+h.h;y<rows;y++){const id=g[y*cols+x];if(id!=null&&S.pcs[id].fragile&&!S.pcs[id].squashed)hit.add(id)}
+  hit.forEach(id=>{const p=S.pcs[id];p.squashed=true;S.squashed.push(p.k);p.el.classList.add('splat');p.el.innerHTML=`<span class="em">💥</span><span class="lbl">squashed</span>`});
+  if(hit.size){const n=[...hit].map(id=>ITEMS[S.pcs[id].k].n).join(' & ');toast(`CRUNCH! The ${n} got squashed — lost!`);SFX.drop();setNatMood('sad');natTimer=1.6}}
+function isSquished(p){if(!p.fragile||(p.where!=='cart'&&p.where!=='seat'))return false;const g=p.where==='cart'?S.grid:S.seat,cols=p.where==='cart'?S.cols:SEATC;
+  for(let x=p.col;x<p.col+p.w;x++)for(let y=0;y<p.row;y++){const id=g[y*cols+x];if(id!=null&&S.pcs[id].heavy)return true}return false}
+function coldOK(){const all=Object.values(S.pcs).filter(p=>p.cold),need=S.cust.order.items.filter(k=>ITEMS[k].cold).length;
+  if(all.length<need||all.some(p=>p.squashed||(p.where!=='cart'&&p.where!=='seat')))return false;if(all.length<2)return true;
+  const wh=all[0].where;if(all.some(p=>p.where!==wh))return false;
+  const g=wh==='cart'?S.grid:S.seat,cols=wh==='cart'?S.cols:SEATC,cells=new Set();g.forEach((id,i)=>{if(id!=null&&S.pcs[id].cold)cells.add(i)});
+  const st=[cells.values().next().value],seen=new Set(st);while(st.length){const i=st.pop(),x=i%cols;for(const j of [i-cols,i+cols,x>0?i-1:-1,x<cols-1?i+1:-1])if(j>=0&&cells.has(j)&&!seen.has(j)){seen.add(j);st.push(j)}}
+  return seen.size===cells.size}
+function reqOK(q){const ps=placed().filter(p=>p.k===q.k);
+  if(q.t==='seat')return ps.some(p=>p.where==='seat');if(q.t==='top')return ps.some(clearAbove);
+  if(q.t==='bottom')return ps.some(p=>p.where==='cart'&&p.row+p.h===S.rows);return coldOK()}
+function renderTicket(){const c=S.cust;
+  $('#ticket').innerHTML=`<h3>${c.def.name}'s Order</h3><div class="tk-items" id="tkItems"></div>${c.order.reqs.length?'<b>Special requests:</b>':'<i>No special requests</i>'}<ul>${c.order.reqs.map((q,i)=>`<li id="rq${i}">${reqText(q)}</li>`).join('')}</ul><div id="tkWarn" class="warn"></div><div class="leg"><i class="hv" style="font-style:normal;color:#fff;padding:0 4px;border-radius:6px">⬇</i> heavy · <i class="fr" style="font-style:normal;color:#fff;padding:0 5px;border-radius:6px">!</i> fragile · <i class="cd" style="font-style:normal;color:#fff;padding:0 3px;border-radius:6px">❄</i> cold<br>Heavy above fragile = SQUASHED &amp; lost</div>`;updateLive()}
+function updateLive(){
+  if(!S)return;const ps=placed(),c=S.cust,counts={};
+  c.order.items.forEach(k=>{counts[k]=counts[k]||{t:0,p:0,d:0};counts[k].t++});ps.forEach(p=>counts[p.k].p++);S.dropped.forEach(k=>counts[k].d++);S.squashed.forEach(k=>counts[k].d++);
+  $('#tkItems').innerHTML=Object.entries(counts).map(([k,v])=>`<span class="ti ${v.p===v.t?'done':v.d?'bad':''}">${ITEMS[k].e} ${v.p}/${v.t}</span>`).join('');
+  c.order.reqs.forEach((q,i)=>$('#rq'+i).classList.toggle('ok',reqOK(q)));
+  const sq=S.squashed.length,dr=S.dropped.length;
+  $('#tkWarn').textContent=[sq?`💥 ${sq} squashed`:'',dr?`🫳 ${dr} dropped`:''].filter(Boolean).join(' · ')+(sq||dr?' — lost!':'');
+  const wasDone=S.done;S.done=!S.toSpawn.length&&!S.belt.length&&!S.hold[0]&&!S.hold[1]&&!drag;
+  $('#serveBtn').classList.toggle('pulse',S.done);
+  if(S.done&&!wasDone){toast('All sorted! Hit Serve ✔');SFX.ding()}
+}
+$('#serveBtn').onclick=()=>{if(!S||!S.running||drag)return;
+  if(!S.done&&!S.confirm){S.confirm=1;$('#serveBtn').textContent='Serve anyway?';setTimeout(()=>{if(S){S.confirm=0;$('#serveBtn').textContent='Serve ✔'}},2500);return}
+  serve()};
+
+/* ---------- scoring & serve ---------- */
+function serve(){
+  const c=S.cust,N=c.order.items.length,ps=placed();
+  const drops=S.dropped.length,packing=Math.max(0,Math.round(100*ps.length/N)-15*drops);
+  const sq=S.squashed.map(k=>({k})),stacking=ps.length||sq.length?Math.max(0,100-40*sq.length):0;
+  const reqs=c.order.reqs,okN=reqs.filter(reqOK).length,requests=reqs.length?Math.round(100*okN/reqs.length):100;
+  const w=G.t-c.arrive,waiting=w<=c.est?100:Math.max(0,Math.round(100-(w-c.est)/c.est*95));
+  const total=Math.round((packing+stacking+requests+waiting)/4);
+  const tip=+((((total/100)**2)*(1.5+N*.35)*(1+.06*(G.day-1))+(total>=100?1:0))*Math.max(0,1-.2*drops)).toFixed(2);
+  const pts=total+(total>=100?25:0);
+  const missing=c.order.items.slice();ps.forEach(p=>{const i=missing.indexOf(p.k);if(i>=0)missing.splice(i,1)});
+  const snap={cols:S.cols,rows:S.rows,pcs:Object.values(S.pcs).filter(p=>p.where==='cart'||p.where==='seat').map(p=>({k:p.k,w:p.w,h:p.h,col:p.col,row:p.row,where:p.where,sq:!!p.squashed}))};
+  Object.values(S.pcs).forEach(p=>p.el.remove());S.running=false;$('#belt').classList.remove('run');
+  save.points+=pts;save.tips=+(save.tips+tip).toFixed(2);G.dayTips+=tip;G.dayPoints+=pts;writeSave();
+  const res={c,packing,stacking,requests,waiting,total,tip,pts,sq:sq.map(p=>p.k),missing,dropped:S.dropped.slice(),failedReqs:reqs.filter(q=>!reqOK(q))};
+  G.results.push(res);S=null;G.paused=true;showServe(res,snap);
+}
+function grade(t){return t>=100?'PERFECT!':t>=90?'Awesome!':t>=75?'Great!':t>=60?'Good':t>=40?'Okay...':'Yikes!'}
+function showServe(r,snap){
+  showStation('serve');const mood=r.total>=90?'happy':r.total>=70?'smile':r.total>=50?'neutral':r.total>=30?'sad':'angry';
+  $('#svCust').innerHTML=person(r.c.def,mood);
+  let line=r.total>=95?pick(['PERFECT fit! You\'re a sorting genius!','Wow, not one squished thing!','Best checkout in Connecticut!']):r.total>=80?pick(['Great job, Natalie!','Nicely packed!','Now that\'s a tidy cart!']):'';
+  if(r.total<95){if(r.sq.length)line=`My ${ITEMS[r.sq[0]].n.toLowerCase()} got SQUASHED!`;else if(r.dropped.length)line=`You dropped my ${ITEMS[r.dropped[0]].n.toLowerCase()}!`;else if(r.missing.length)line=`Where's my ${ITEMS[r.missing[0]].n.toLowerCase()}?`;else if(r.failedReqs.length)line=`I asked for: ${reqText(r.failedReqs[0])}...`;else if(r.waiting<70)line='That took forever...';else line=line||'Thanks!'}
+  $('#svBubble').textContent=line;
+  const m=.62,C=CELL*m,ox=0,oy=300-snap.rows*C-30,sx=snap.cols*C+16,sy=oy-22*m-10;let h=`<div style="position:absolute;left:${ox-4}px;top:${oy-4}px;width:${snap.cols*C+8}px;height:${snap.rows*C+8}px;border:5px solid #5b6773;border-radius:8px;background:#eef2f6"></div><div style="position:absolute;left:${sx-4}px;top:${sy-4}px;width:${SEATC*C+8}px;height:${SEATR*C+8}px;border:4px solid #c62828;border-radius:8px;background:#fff0f0"></div>`;
+  snap.pcs.forEach(p=>{const it=ITEMS[p.k],x=(p.where==='cart'?ox:sx)+p.col*C,y=(p.where==='cart'?oy:sy)+p.row*C;
+    h+=`<div style="position:absolute;left:${x+1}px;top:${y+1}px;width:${p.w*C-2}px;height:${p.h*C-2}px;background:${it.c};border:2px solid #3a2414;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:17px;${p.sq?'box-shadow:0 0 0 3px #ff2d2d':''}">${p.sq?'💥':it.e}</div>`});
+  $('#svCart').innerHTML=h;
+  const bar=(l,v,i)=>`<div class="sbar"><div class="t"><span>${l}</span><span>${v}%</span></div><div class="tr"><div class="f" data-v="${v}" style="background:${v>=80?'#4caf50':v>=50?'#ffc107':'#f44336'};transition-delay:${.2+i*.35}s"></div></div></div>`;
+  $('#svCard').innerHTML=`<h2>${r.c.def.name}'s Rating</h2>${bar('⏱ Waiting',r.waiting,0)}${bar('🛒 Packing'+(r.dropped.length?` <small style="color:#c62828">(−${15*r.dropped.length} for drops)</small>`:''),r.packing,1)}${bar('🥚 No Squishing',r.stacking,2)}${bar('📝 Requests',r.requests,3)}<div class="total"><div class="pct">${r.total}%</div><div class="gr">${grade(r.total)}</div><div class="tip">💵 Tip: $${r.tip.toFixed(2)} &nbsp; ⭐ +${r.pts} pts</div></div>`;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>document.querySelectorAll('#svCard .f').forEach(f=>f.style.width=f.dataset.v+'%')));
+  setTimeout(()=>{r.total>=60?SFX.cash():SFX.bad()},1700);
+}
+$('#svCont').onclick=()=>{
+  const r=G.results[G.results.length-1],c=r.c;G.waiting=G.waiting.filter(x=>x!==c);c.el.remove();G.served++;G.paused=false;if(G.strikes>=3)return;
+  layoutPeople();renderRail();
+  const after=()=>{if(G.served+G.left>=G.total)daySummary();else showStation(G.tickets.length&&!G.queue.length?'sort':'order')};
+  const r0=G.rank0,r1=rankOf(save.points);
+  if(r1>r0){G.rank0=r1;G.paused=true;SFX.rank();const unl=Object.values(ITEMS).filter(it=>(it.r||1)>r0&&(it.r||1)<=r1);
+    modal(`<h1>Rank Up!</h1><h2>Rank ${r1}: ${rankName(r1)}</h2>${unl.length?`<p style="font-weight:900">New groceries on the belt:</p><div class="chips" style="justify-content:center">${unl.map(it=>`<span class="chip" style="background:${it.c};padding:0 8px;font-size:15px;font-weight:900">${it.e} ${it.n}</span>`).join('')}</div>`:'<p style="font-weight:900">Customers will expect even more from you now!</p>'}`,[['Awesome!','gold',()=>{G.paused=false;after()}]]);
+  }else after();
+};
+function daySummary(){
+  G.paused=true;const avg=G.results.length?Math.round(G.results.reduce((a,r)=>a+r.total,0)/G.results.length):0;
+  modal(`<h1>Day ${G.day} Done!</h1><h2>Average rating: ${avg}% — ${grade(avg)}</h2>${G.results.map(r=>`<div class="row"><span>${r.c.def.name}</span><span>${r.total}% · $${r.tip.toFixed(2)}</span></div>`).join('')}
+  ${G.left?`<div class="row" style="color:#c62828"><span>Walked out 😤</span><span>${G.left}</span></div>`:''}<div class="row"><span>Tips today</span><span>$${G.dayTips.toFixed(2)}</span></div><div class="row"><span>Points today</span><span>+${G.dayPoints}</span></div><div class="row"><span>Rank</span><span>${rankOf(save.points)} · ${rankName(rankOf(save.points))}</span></div>`,
+  [['Title','blue',()=>{save.day++;writeSave();showTitle()}],['Next Day ➜','green',()=>{save.day++;writeSave();startDay()}]]);
+}
+
+/* ---------- main loop ---------- */
+let last=performance.now(),acc=0;
+function frame(now){const dt=Math.min(.1,(now-last)/1000);last=now;
+  if(G&&!G.paused){G.t+=dt;
+    if(G.arrived<G.total){const idle=!G.queue.length&&!G.tickets.length&&!S&&!G.taking;if(idle&&G.nextArrive>G.t+2)G.nextArrive=G.t+2;
+      if(G.t>=G.nextArrive){arrive();const D=diff(G.day);G.nextArrive=G.t+D.interval*(.75+Math.random()*.5)}}
+    if(G.station==='sort'&&S&&S.running&&!$('#modal').classList.contains('on'))tickBelt(dt);
+    acc+=dt;if(acc>.25){acc=0;hud();
+      if(!G.paused)tickPatience()}}
+  requestAnimationFrame(frame)}
+function hud(){$('#hDay').textContent='Day '+G.day;$('#hServed').textContent=`${G.served}/${G.total}`;
+  $('#hStrikes').textContent='😡'.repeat(G.strikes)+'⚪'.repeat(Math.max(0,3-G.strikes));
+  $('#hLine').innerHTML=[...G.queue,...G.waiting].filter(c=>!frozen(c)).map(c=>{const f=(G.t-c.arrive)/c.patience;return`<b class="${f>=.8?'low':''}" title="${c.def.name}" style="background:${f<.5?'#4caf50':f<.75?'#ffc107':'#f44336'}">${f<.45?'🙂':f<.65?'😐':f<.82?'🙁':'😡'}</b>`}).join('');
+  const r=rankOf(save.points),lo=need(r),hi=need(r+1);$('#hRank').textContent=r;$('#hRankName').textContent=rankName(r);$('#hXp').style.width=Math.min(100,(save.points-lo)/(hi-lo)*100)+'%';
+  $('#hTips').textContent='$'+save.tips.toFixed(2);const mins=9*60+Math.floor(G.t*2),hh=Math.floor(mins/60),mm=mins%60;$('#hClock').textContent=`${(hh-1)%12+1}:${String(mm).padStart(2,'0')} ${hh>=12?'PM':'AM'}`;
+  document.querySelector('.tab[data-s=order]').classList.toggle('alert',G.station!=='order'&&G.queue.length>0&&!G.taking);
+  document.querySelector('.tab[data-s=sort]').classList.toggle('alert',G.station!=='sort'&&!S&&G.tickets.length>0);
+  $('#takeBtn').style.display=G.queue.length&&!G.taking?'block':'none';}
+requestAnimationFrame(frame);
+$('#muteBtn').onclick=()=>{save.mute=!save.mute;writeSave();$('#muteBtn').textContent=save.mute?'🔇':'🔊'};
+$('#muteBtn').textContent=save.mute?'🔇':'🔊';
+
+/* ---------- title ---------- */
+function showTitle(){G=null;S=null;showScreen('title');$('#titleNat').innerHTML=person(NAT,'happy');
+  const b=$('#titleBtns'),cont=save.day>1||save.points>0;b.innerHTML='';
+  const add=(t,c,f)=>{const x=document.createElement('button');x.className='btn '+c;x.innerHTML=t;x.onclick=()=>{SFX.blip();f()};b.appendChild(x)};
+  add(cont?`Continue · Day ${save.day}`:'Play!','green pulse',startDay);
+  if(cont)add('New Game','',()=>modal('<h2>Start over from Day 1?</h2><p style="font-weight:800">Your rank, points and tips will be reset.</p>',[['Cancel','blue'],['Reset','',()=>{save={day:1,points:0,tips:0,tut:false,mute:save.mute};writeSave();showTitle()}]]));
+  add('How to Play','blue',()=>howTo());
+}
+showTitle();
+</script>
+</body>
+</html>
