@@ -2,15 +2,19 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#2a1810">
 <title>Natalie Shopping Cart Sorteria</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
 :root{--ink:#3a2414;--red:#d7262e;--cream:#fff6e6;--gold:#ffc93c}
 *{box-sizing:border-box}
-html,body{margin:0;height:100%;background:#2a1810;overflow:hidden;font-family:Nunito,system-ui,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none;color:var(--ink)}
-#stage{position:absolute;left:50%;top:50%;width:960px;height:600px;margin:-300px 0 0 -480px;overflow:hidden;background:#fdf1dc;border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+html,body{margin:0;height:100%;position:fixed;inset:0;overscroll-behavior:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;background:#2a1810;overflow:hidden;font-family:Nunito,system-ui,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none;color:var(--ink)}
+*{touch-action:none}
+#stage{position:absolute;left:50%;top:50%;transform-origin:50% 50%;width:960px;height:600px;margin:-300px 0 0 -480px;overflow:hidden;background:#fdf1dc;border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.5)}
 .screen,.station{position:absolute;inset:0;display:none}
 .screen.on,.station.on{display:block}
 .L{font-family:'Lilita One',Nunito,sans-serif;font-weight:400}
@@ -115,6 +119,7 @@ html,body{margin:0;height:100%;background:#2a1810;overflow:hidden;font-family:Nu
 #ticket li{font-weight:900;padding:2px 0 2px 20px;position:relative;line-height:1.2}
 #ticket li::before{content:"☐";position:absolute;left:2px;top:1px}
 #ticket li.ok{color:#2e7d32}
+.sm #ticket{font-size:13.5px}.sm #ticket li{font-size:14px}.sm #ticket .ti{font-size:14px}.sm #ticket .leg{font-size:12px}.sm .reqline{font-size:16px}.sm #hint{font-size:14px}
 #ticket li.ok::before{content:"✅";font-size:11px}
 #ticket .leg{margin-top:5px;border-top:2px dashed #ccc;padding-top:4px;font-size:10.5px;font-weight:800;color:#6b5040}
 #ticket .warn{color:#c62828;font-weight:900}
@@ -219,6 +224,7 @@ html,body{margin:0;height:100%;background:#2a1810;overflow:hidden;font-family:Nu
       <span class="sp"></span>
       <span class="pill"><span id="hRank">1</span><span><span id="hRankName"></span><div class="xp"><div id="hXp"></div></div></span></span>
       <span class="pill">💵 <span id="hTips">$0.00</span></span>
+      <button id="fsBtn" title="Full screen" style="background:none;border:0;font-size:18px;cursor:pointer;color:#fff;display:none">⛶</button>
       <button id="muteBtn" title="Sound">🔊</button>
     </div>
 
@@ -241,7 +247,7 @@ html,body{margin:0;height:100%;background:#2a1810;overflow:hidden;font-family:Nu
       <div class="bend"></div><div class="bendlbl">⚠ NO STOPPER!</div>
       <div class="hold" style="left:14px;top:196px;width:142px;height:140px"><span>COUNTER</span></div>
       <div class="hold" style="left:14px;top:346px;width:142px;height:140px"><span>COUNTER</span></div>
-      <div id="hint">Drag groceries into the cart · tap an item or press R to rotate</div>
+      <div id="hint">Drag groceries into the cart · tap an item to rotate it</div>
       <svg id="cartsvg" width="960" height="600"></svg>
       <div id="natS" class="nat" style="left:736px;top:236px;width:214px;height:321px"></div>
       <div id="ticket"></div>
@@ -416,9 +422,30 @@ function person(o,mood='smile'){
 
 /* ---------- stage scaling ---------- */
 const stage=$('#stage');
-function fit(){const k=Math.min(innerWidth/960,innerHeight/600);stage.style.transform=`scale(${k})`}
-addEventListener('resize',fit);fit();
-function stagePt(e){const r=stage.getBoundingClientRect(),k=r.width/960;return{x:(e.clientX-r.left)/k,y:(e.clientY-r.top)/k}}
+// Fit the 960x600 stage to any screen. On a portrait phone the stage is turned sideways so it fills the screen
+// instead of shrinking to a strip; stagePt() undoes that rotation for pointer input.
+let ROT=false,K=1;
+function fit(){
+  const vv=window.visualViewport,W=vv?vv.width:innerWidth,H=vv?vv.height:innerHeight;
+  const kl=Math.min(W/960,H/600),kp=Math.min(H/960,W/600);
+  ROT=H>W&&kp>kl*1.15;K=ROT?kp:kl;
+  stage.style.transform=`rotate(${ROT?90:0}deg) scale(${K})`;
+  stage.style.borderRadius=K<.8?'0':'14px';stage.classList.toggle('sm',K<.8);
+}
+addEventListener('resize',fit);addEventListener('orientationchange',()=>setTimeout(fit,250));
+if(window.visualViewport)visualViewport.addEventListener('resize',fit);
+fit();
+function stagePt(e){
+  const vv=window.visualViewport,W=vv?vv.width:innerWidth,H=vv?vv.height:innerHeight,ox=vv?vv.offsetLeft:0,oy=vv?vv.offsetTop:0;
+  const dx=e.clientX-ox-W/2,dy=e.clientY-oy-H/2;
+  return ROT?{x:480+dy/K,y:300-dx/K}:{x:480+dx/K,y:300+dy/K};
+}
+const TOUCH=matchMedia('(pointer:coarse)').matches||'ontouchstart' in window;
+const fsEl=document.documentElement;
+if(fsEl.requestFullscreen||fsEl.webkitRequestFullscreen){const b=$('#fsBtn');b.style.display='block';
+  b.onclick=()=>{const d=document;if(d.fullscreenElement||d.webkitFullscreenElement)(d.exitFullscreen||d.webkitExitFullscreen).call(d);else{(fsEl.requestFullscreen||fsEl.webkitRequestFullscreen).call(fsEl);try{screen.orientation.lock('landscape').catch(()=>{})}catch(e){}}};
+  document.addEventListener('fullscreenchange',()=>setTimeout(fit,100))}
+addEventListener('pointerdown',()=>{try{if(AC&&AC.state==='suspended')AC.resume()}catch(e){}},true);
 stage.addEventListener('contextmenu',e=>e.preventDefault());
 
 function buildShelves(el){const cols=['#e53935','#fdd835','#43a047','#1e88e5','#fb8c00','#8e24aa','#f06292','#26c6da','#8d6e63','#fff'];let h='';
@@ -632,16 +659,16 @@ function fall(p){S.belt=S.belt.filter(id=>id!==p.id);p.where='drop';p.el.classLi
 $('#pcs').addEventListener('pointerdown',e=>{
   const el=e.target.closest('.pc');if(!el||!S||!S.running||drag||G.paused)return;const p=S.pcs[el.dataset.id];if(!p||p.where==='drop')return;e.preventDefault();
   if(e.button===2){if(p.where==='belt'||p.where==='hold')rotateInPlace(p);return}
-  const pt=stagePt(e);drag={p,sx:pt.x,sy:pt.y,lx:pt.x,ly:pt.y,ox:pt.x-parseFloat(el.style.left),oy:pt.y-parseFloat(el.style.top),started:false,target:null};
+  const pt=stagePt(e);drag={p,pid:e.pointerId,touch:e.pointerType==='touch',sx:pt.x,sy:pt.y,lx:pt.x,ly:pt.y,ox:pt.x-parseFloat(el.style.left),oy:pt.y-parseFloat(el.style.top),started:false,target:null};
 });
-addEventListener('pointermove',e=>{if(!drag)return;const pt=stagePt(e);drag.lx=pt.x;drag.ly=pt.y;
+addEventListener('pointermove',e=>{if(!drag||e.pointerId!==drag.pid)return;const pt=stagePt(e);drag.lx=pt.x;drag.ly=pt.y;
   if(!drag.started){if(Math.hypot(pt.x-drag.sx,pt.y-drag.sy)<7)return;if(!beginDrag()){drag=null;return}}moveDrag()});
-addEventListener('pointerup',e=>{if(!drag)return;const d=drag;if(!d.started){drag=null;if(d.p.where==='belt'||d.p.where==='hold')rotateInPlace(d.p);return}endDrag()});
-addEventListener('pointercancel',()=>{if(drag&&drag.started){drag.target=null;endDrag()}else drag=null});
+addEventListener('pointerup',e=>{if(!drag||e.pointerId!==drag.pid)return;const d=drag;if(!d.started){drag=null;if(d.p.where==='belt'||d.p.where==='hold')rotateInPlace(d.p);return}endDrag()});
+addEventListener('pointercancel',e=>{if(drag&&e.pointerId!==drag.pid)return;if(drag&&drag.started){drag.target=null;endDrag()}else drag=null});
 addEventListener('mousedown',e=>{if(drag&&drag.started&&e.button===2)rotateDrag()});
 addEventListener('keydown',e=>{if(!drag||!drag.started)return;if(e.key==='r'||e.key==='R'||e.key===' '||e.key==='ArrowUp'){e.preventDefault();rotateDrag()}});
 addEventListener('wheel',e=>{if(drag&&drag.started){rotateDrag()}},{passive:true});
-$('#rotBtn').addEventListener('pointerdown',e=>{e.stopPropagation();if(drag&&drag.started)rotateDrag();else toast('Tap an item to rotate it — or press R while dragging')});
+$('#rotBtn').addEventListener('pointerdown',e=>{e.stopPropagation();if(drag&&drag.started)rotateDrag();else toast(TOUCH?'Tap an item to rotate it — or tap ⟳ with another finger while dragging':'Tap an item to rotate it — or press R while dragging')});
 
 function clearAbove(p){const g=p.where==='cart'?S.grid:S.seat,cols=p.where==='cart'?S.cols:SEATC;for(let x=p.col;x<p.col+p.w;x++)for(let y=0;y<p.row;y++)if(g[y*cols+x]!=null)return false;return true}
 function beginDrag(){
@@ -652,9 +679,10 @@ function beginDrag(){
   if(p.where==='belt'){S.belt=S.belt.filter(id=>id!==p.id);p.teeter=0;p.el.classList.remove('teeter')}
   else if(p.where==='hold')S.hold[p.slot]=null;
   else if(p.where==='cart')unstamp(S.grid,p.id);else if(p.where==='seat')unstamp(S.seat,p.id);
-  p.where='drag';p.el.classList.add('drag');SFX.pick();updateLive();return drag.started=true;
+  p.where='drag';p.el.classList.add('drag');liftForTouch();SFX.pick();updateLive();return drag.started=true;
 }
-function rotateDrag(){const p=drag.p;if(p.w===p.h)return;[p.w,p.h]=[p.h,p.w];sizePiece(p);drag.ox=p.w*CELL/2;drag.oy=p.h*CELL/2;SFX.blip();moveDrag()}
+function liftForTouch(){if(drag.touch){drag.ox=drag.p.w*CELL/2;drag.oy=drag.p.h*CELL+26}}
+function rotateDrag(){const p=drag.p;if(p.w===p.h)return;[p.w,p.h]=[p.h,p.w];sizePiece(p);drag.ox=p.w*CELL/2;drag.oy=p.h*CELL/2;liftForTouch();SFX.blip();moveDrag()}
 function rotateInPlace(p){if(p.w===p.h)return;[p.w,p.h]=[p.h,p.w];sizePiece(p);posPiece(p);SFX.blip()}
 function moveDrag(){
   const p=drag.p,left=drag.lx-drag.ox,top=drag.ly-drag.oy;setXY(p,left,top);
