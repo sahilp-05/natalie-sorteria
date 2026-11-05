@@ -245,6 +245,8 @@ html,body{margin:0;height:100%;position:fixed;inset:0;overscroll-behavior:none;-
 </style>
 </head>
 <body>
+<div id="vp" style="position:fixed;left:0;top:0;right:0;bottom:0;visibility:hidden;pointer-events:none"></div>
+<div id="err" style="display:none;position:fixed;left:8px;right:8px;bottom:8px;z-index:999;background:#fff3c4;color:#3a2414;border:3px solid #3a2414;border-radius:12px;padding:8px 10px;font:800 13px Nunito,sans-serif"></div>
 <div id="stage">
   <div id="title" class="screen on">
     <div id="titleNat"></div>
@@ -322,6 +324,8 @@ html,body{margin:0;height:100%;position:fixed;inset:0;overscroll-behavior:none;-
 
 <script>
 const $=s=>document.querySelector(s);
+function showErr(m){const e=document.getElementById('err');if(!e)return;e.innerHTML=`Oops — something glitched: <i>${String(m).slice(0,140)}</i><br>Tap here to reload — finished days stay saved.`;e.style.display='block';e.onclick=()=>location.reload()}
+window.addEventListener('error',e=>showErr(e.message));window.addEventListener('unhandledrejection',e=>showErr(e.reason&&e.reason.message||e.reason));
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const rint=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
@@ -472,8 +476,16 @@ function person(o,mood='smile'){
 /* ---------- stage scaling ---------- */
 const stage=$('#stage');
 let K=1,lastW=0,lastH=0;
+const VPMETA='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover';
+function unzoom(){const v=window.visualViewport;if(v&&v.scale>1.01){const m=document.querySelector('meta[name=viewport]');m.setAttribute('content',VPMETA+',minimum-scale=1');setTimeout(()=>m.setAttribute('content',VPMETA),300);scrollTo(0,0)}}
+['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));
+document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
+let lastTouchEnd=0;document.addEventListener('touchend',e=>{const n=Date.now();if(n-lastTouchEnd<320&&!e.target.closest('.pc'))e.preventDefault();lastTouchEnd=n},{passive:false});
+document.addEventListener('touchmove',e=>{if(e.touches.length>1)e.preventDefault()},{passive:false});
+if(window.visualViewport)visualViewport.addEventListener('resize',()=>fit());
 function fit(force){
-  const W=innerWidth,H=innerHeight;if(!force&&W===lastW&&H===lastH)return;lastW=W;lastH=H;
+  unzoom();
+  const vp=$('#vp'),W=vp.offsetWidth||innerWidth,H=vp.offsetHeight||innerHeight;if(!force&&W===lastW&&H===lastH)return;lastW=W;lastH=H;
   const pt=H>W*1.1;
   if(pt!==PT){PT=pt;setLayoutConsts();stage.classList.toggle('pt',PT);stage.style.width=SW+'px';stage.style.height=SH+'px';relayout()}
   K=Math.min(W/SW,H/SH);
@@ -620,14 +632,17 @@ function dayFailed(){
     [['Title','blue',()=>{save.points=G.start.points;save.tips=G.start.tips;writeSave();showTitle()}],['Retry Day '+G.day,'green',()=>{save.points=G.start.points;save.tips=G.start.tips;writeSave();startDay()}]]);
 }
 $('#takeBtn').onclick=async()=>{
-  const c=G.queue[0];if(!c||G.taking||G.paused)return;G.taking=c;$('#takeBtn').style.display='none';SFX.blip();
+  const c=G.queue[0],g=G;if(!c||G.taking||G.paused)return;G.taking=c;$('#takeBtn').style.display='none';SFX.blip();
+  try{
   const b=$('#bubble');b.style.display='block';b.innerHTML=`<div class="nm">${c.def.name}</div><div class="chips"></div><div class="rq"></div>`;
   setMood(c,'happy');
-  for(const k of c.order.items){await wait(200);const it=ITEMS[k];b.querySelector('.chips').insertAdjacentHTML('beforeend',`<span class="chip" style="background:${it.c}" title="${it.n}">${it.e}</span>`);SFX.talk()}
+  for(const k of c.order.items){await wait(200);if(G!==g)return;const it=ITEMS[k];b.querySelector('.chips').insertAdjacentHTML('beforeend',`<span class="chip" style="background:${it.c}" title="${it.n}">${it.e}</span>`);SFX.talk()}
   for(const q of c.order.reqs){await wait(500);b.querySelector('.rq').insertAdjacentHTML('beforeend',`<div class="reqline">💬 “${reqSay(q)}”</div>`);SFX.talk()}
   await wait(900);
+  }catch(e){console.error(e)}
+  if(G!==g)return;
   $('#regScr').textContent='$'+(c.order.items.length*3.49).toFixed(2);
-  G.queue.shift();G.waiting.push(c);G.tickets.push(c);G.taking=null;b.style.display='none';setMood(c,'smile');
+  G.queue=G.queue.filter(x=>x!==c);G.waiting.push(c);G.tickets.push(c);G.taking=null;b.style.display='none';setMood(c,'smile');
   c.el.classList.add('walk');setTimeout(()=>c.el.classList.remove('walk'),1000);SFX.cash();
   layoutPeople();renderRail();
   if(!save.tut)toast('Order ticket printed! Head to the 🛒 Sort station.');
